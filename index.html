@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>faapd</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 40px 20px;
+      position: relative;
+    }
+
+    .site-wrapper {
+      max-width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+      padding: 0 40px;
+      transition: filter 0.25s ease;
+    }
+
+    /* Blur class applied to site background when modal is open */
+    .site-wrapper.body-blurred {
+      filter: blur(6px);
+      pointer-events: none;
+    }
+
+    /* Left Section: Wraps title and post feed together */
+    .content-left {
+      max-width: 580px;
+      width: 100%;
+    }
+
+    .logo {
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: bold;
+      font-size: 26px;
+      color: #000000;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 25px;
+    }
+
+    /* Right Section: Navigation */
+    aside {
+      width: 140px;
+      flex-shrink: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      margin-top: 250px;
+      margin-right: 60px;
+    }
+
+    .nav-list {
+      list-style: none;
+      margin-bottom: 30px;
+    }
+
+    .nav-list li {
+      margin-bottom: 6px;
+    }
+
+    .nav-list a {
+      color: #000000;
+      text-decoration: underline;
+    }
+
+    .nav-list a:hover {
+      background-color: #ffff00;
+    }
+
+    .author-key {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 10px;
+      color: #555555;
+      line-height: 1.4;
+    }
+
+    .author-key li {
+      margin-bottom: 4px;
+    }
+
+    .author-key a {
+      color: #555555;
+      text-decoration: none;
+    }
+
+    .author-key a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      flex: 1;
+      max-width: 580px;
+    }
+
+    .post {
+      padding-bottom: 40px;
+      border-bottom: 1px solid #eeeeee;
+      margin-bottom: 30px;
+    }
+
+    .post-header {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .author-tag {
+      display: inline;
+      margin-left: 6px;
+      background-color: #ffff00; /* Yellow highlight background */
+      color: #000000;           /* Keeps text readable black */
+      text-decoration: none;
+    }
+
+    .post-title {
+      display: inline;
+      margin-left: 6px;
+    }
+
+    .post-title a {
+      color: #000000;
+      text-decoration: none;
+    }
+
+    .post-title a:hover {
+      text-decoration: underline;
+    }
+
+    .post-date {
+      color: #888888;
+      font-weight: normal;
+      margin-left: 6px;
+    }
+
+    .post-body {
+      display: flex;
+      gap: 15px;
+      align-items: flex-start;
+    }
+
+    .post-thumb {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 0px solid #000000;
+    }
+
+    .post-text {
+      flex: 1;
+    }
+
+    /* --- Silhouette Trigger Button (Top Right) --- */
+    .auth-icon-btn {
+      position: absolute;
+      top: 40px;
+      right: 50px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000000;
+      transition: opacity 0.15s ease;
+      z-index: 100;
+    }
+
+    .auth-icon-btn svg {
+      width: 26px;
+      height: 26px;
+      display: block;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* --- Modal Backdrops (Blurred Glass Background) --- */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(255, 255, 255, 0.35); /* Semi-transparent white */
+      -webkit-backdrop-filter: blur(2px);           /* Backdrop blur for Safari */
+      backdrop-filter: blur(2px);                   /* Standard Backdrop blur */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 1000;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* --- Modal Container & Form Elements --- */
+    .modal-container {
+      width: 100%;
+      max-width: 340px;
+      position: relative;
+    }
+
+    .modal-close-btn {
+      display: none
+    }
+
+    .modal-close-btn:hover {
+      opacity: 0.5;
+    }
+
+    .modal-header {
+      margin-bottom: 28px;
+    }
+
+    .modal-header h2 {
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .modal-header p.subtitle {
+      font-size: 13px;
+      color: #666666;
+    }
+
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      text-transform: lowercase;
+      letter-spacing: 0.03em;
+      color: #444444;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 8px 0;
+      font-size: 14px;
+      color: #000000;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #cccccc;
+      border-radius: 0;
+      outline: none;
+      transition: border-color 0.15s ease;
+      font-family: inherit;
+    }
+
+    .form-group input:focus {
+      border-bottom-color: #000000;
+    }
+
+    .toggle-pass-btn {
+      position: absolute;
+      right: 0;
+      background: none;
+      border: none;
+      font-size: 11px;
+      text-transform: lowercase;
+      color: #666666;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .toggle-pass-btn:hover {
+      color: #000000;
+    }
+
+    .form-options {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: -4px;
+    }
+
+    .forgot-link {
+      font-size: 11px;
+      color: #666666;
+      text-decoration: none;
+    }
+
+    .forgot-link:hover {
+      color: #000000;
+      text-decoration: underline;
+    }
+
+    .error-message {
+      font-size: 11px;
+      color: #d32f2f;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .btn-submit {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #000000;
+      color: #ffffff;
+      border: 1px solid #000000;
+      border-radius: 0;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      font-family: inherit;
+    }
+
+    .btn-submit:hover {
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    .modal-footer {
+      margin-top: 28px;
+      font-size: 12px;
+      color: #666666;
+    }
+
+    .modal-footer button {
+      background: none;
+      border: none;
+      color: #000000;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    .modal-footer button:hover {
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Right Silhouette Button -->
+  <button class="auth-icon-btn" onclick="openModal('login-modal')" aria-label="account options">
+    <svg viewBox="0 0 100 100">
+      <!-- Solid Circle Head -->
+      <circle cx="50" cy="24" r="16" fill="currentColor" />
+      <!-- Solid Downward Triangle Body -->
+      <polygon points="12,46 88,46 50,86" fill="currentColor" />
+    </svg>
+  </button>
+
+  <div class="site-wrapper" id="site-wrapper">
+    <!-- Left Column: Title + Posts Feed -->
+    <div class="content-left">
+      <a href="index.html" class="logo">faapd</a>
+      <main id="feed-container"></main>
+    </div>
+
+    <!-- Right Column: Navigation Directory -->
+    <aside>
+      <ul class="nav-list">
+        <li><a href="about.html">ABOUT</a></li>
+      </ul>
+
+      <ul class="author-key">
+        <li><a href="franklinabboud.html">Franklin Abboud</a></li>
+        <li><a href="patrickdaughety.html">Patrick Daughety</a></li>
+      </ul>
+    </aside>
+  </div>
+
+  <!-- LOG IN MODAL -->
+  <div id="login-modal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'login-modal')">
+    <div class="modal-container">
+      <button class="modal-close-btn" onclick="closeModal('login-modal')" aria-label="close">✕</button>
+      
+      <div class="modal-header">
+        <h2></h2>
+      </div>
+
+      <form id="login-form" class="modal-form" action="/login" method="POST">
+        <div class="form-group">
+          <label for="login-user">username or email</label>
+          <input type="text" id="login-user" name="username" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="login-pass">password</label>
+          <div class="input-wrapper">
+            <input type="password" id="login-pass" name="password" required autocomplete="current-password">
+            <button type="button" class="toggle-pass-btn" onclick="togglePasswordVisibility('login-pass', this)">show</button>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <a href="/reset-password" class="forgot-link">forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn-submit">faapd</button>
+      </form>
+
+      <div class="modal-footer">
+        <button onclick="switchModal('login-modal', 'register-modal')">create account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE ACCOUNT MODAL -->
+  <div id="register-modal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'register-modal')">
+    <div class="modal-container">
+      <button class="modal-close-btn" onclick="closeModal('register-modal')" aria-label="close">✕</button>
+      
+      <div class="modal-header">
+        <h2></h2>
+             </div>
+
+      <form id="signup-form" class="modal-form" action="/register" method="POST" onsubmit="return validateRegisterForm(event)">
+        <div class="form-group">
+          <label for="reg-username">username</label>
+          <input type="text" id="reg-username" name="username" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="reg-email">email</label>
+          <input type="email" id="reg-email" name="email" required autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label for="reg-pass">password</label>
+          <div class="input-wrapper">
+            <input type="password" id="reg-pass" name="password" required minlength="8" autocomplete="new-password">
+            <button type="button" class="toggle-pass-btn" onclick="togglePasswordVisibility('reg-pass', this)">show</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-confirm-pass">con</label>
+          <div class="input-wrapper">
+            <input type="password" id="reg-confirm-pass" name="confirm-password" required autocomplete="new-password">
+            <button type="button" class="toggle-pass-btn" onclick="togglePasswordVisibility('reg-confirm-pass', this)">show</button>
+          </div>
+          <div id="password-error" class="error-message">passwords do not match</div>
+        </div>
+
+        <button type="submit" class="btn-submit">faapd</button>
+      </form>
+
+      <div class="modal-footer">
+        <button onclick="switchModal('register-modal', 'login-modal')">log in</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="posts.js"></script>
+  <script>
+    const feedContainer = document.getElementById('feed-container');
+
+    // Secret PIN for author management
+    const ADMIN_PIN = "1234";
+
+    // Fetch local posts and merge safely
+    const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+    const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
+    const allPosts = [...localPosts.slice().reverse(), ...staticPosts];
+
+    let fullFeedHtml = '';
+
+    allPosts.forEach(post => {
+      const d = new Date(post.date);
+
+      const formattedDate = d.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: '2-digit'
+      }).replace(/\//g, '.');
+
+      const formattedTime = d.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+
+      const fullTimestamp = `${formattedDate} @ ${formattedTime}`;
+
+      fullFeedHtml += `
+        <article class="post">
+          <div class="post-header">
+            <span class="author-tag">${post.author}</span>
+            <span class="post-title">
+              <a href="post.html?id=${post.id}">${post.title}</a>
+            </span>
+            <span class="post-date">${fullTimestamp}</span>
+          </div>
+          <div class="post-body">
+            <img src="${post.image}" alt="Thumbnail" class="post-thumb" />
+            <div class="post-text">
+              <p>${post.text}</p>
+            </div>
+          </div>
+        </article>
+      `;
+    });
+
+    if (feedContainer) {
+      feedContainer.innerHTML = fullFeedHtml;
+    }
+
+    // Password-protected delete function
+    function deletePost(id) {
+      const enteredPin = prompt("Author verification required.\nEnter Admin PIN to delete this post:");
+      if (enteredPin === null) return; // User cancelled prompt
+      if (enteredPin === ADMIN_PIN) {
+        let stored = JSON.parse(localStorage.getItem('custom_posts')) || [];
+        stored = stored.filter(p => p.id != id);
+        localStorage.setItem('custom_posts', JSON.stringify(stored));
+        alert("Post removed successfully.");
+        location.reload();
+      } else {
+        alert("Incorrect PIN. Access denied.");
+      }
+    }
+
+    /* --- Modal Controls with Blur State --- */
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+      document.getElementById('site-wrapper').classList.add('body-blurred');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+      document.getElementById('site-wrapper').classList.remove('body-blurred');
+    }
+
+    function closeModalOnBackdrop(e, id) {
+      if (e.target.id === id) {
+        closeModal(id);
+      }
+    }
+
+    function switchModal(closeId, openId) {
+      document.getElementById(closeId).classList.remove('active');
+      document.getElementById(openId).classList.add('active');
+    }
+
+    function togglePasswordVisibility(id, btn) {
+      const input = document.getElementById(id);
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "hide";
+      } else {
+        input.type = "password";
+        btn.textContent = "show";
+      }
+    }
+
+    function validateRegisterForm(e) {
+      const pass = document.getElementById("reg-pass").value;
+      const confirmPass = document.getElementById("reg-confirm-pass").value;
+      const error = document.getElementById("password-error");
+
+      if (pass !== confirmPass) {
+        e.preventDefault();
+        error.style.display = "block";
+        return false;
+      }
+
+      error.style.display = "none";
+      return true;
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeModal('login-modal');
+        closeModal('register-modal');
+      }
+    });
+  </script>
+</body>
+</html>
