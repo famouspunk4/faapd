@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>faapd - post</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 40px 20px;
+    }
+
+    /* Outer wrapper identical to index.html */
+    .site-wrapper {
+      max-width: 100%;
+      padding: 0 40px;
+    }
+
+    /* Logo positioned identically to index.html */
+    .logo {
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: bold;
+      font-size: 26px;
+      color: #000000;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    /* Centered form container pulled up level with top layout */
+    .form-container {
+      max-width: 580px;
+      margin: 60px auto 0 auto; /* Pulls form up to remain centered while keeping logo in position */
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 15px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      font-size: 11px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    textarea,
+    input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      font-size: 12px;
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    input[type="file"]::file-selector-button {
+      color: #000000 !important;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    button {
+      background: #000000;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .timestamp,
+    small {
+      font-size: 11px !important;
+      color: #555555;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="site-wrapper">
+    <!-- Logo placed in the exact top-left position -->
+    <a href="index.html" class="logo">faapd</a>
+
+    <!-- Centered Form -->
+    <div class="form-container">
+      <form id="post-form">
+        <div class="form-group">
+          <label for="author">Author</label>
+          <input type="text" id="author" value="" required>
+        </div>
+
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input type="text" id="title" required>
+        </div>
+
+        <div class="form-group">
+          <label for="image-file">Upload Image</label>
+          <input type="file" id="image-file" accept="image/*" required>
+        </div>
+
+        <div class="form-group">
+          <label for="text">Text Content</label>
+          <textarea id="text" rows="5" required></textarea>
+        </div>
+
+        <button type="submit">Publish Post</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('post-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('image-file');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Please select an image file.");
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function(event) {
+        const base64ImageData = event.target.result;
+        const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+
+        const newPost = {
+          id: Date.now(),
+          author: document.getElementById('author').value.trim(),
+          title: document.getElementById('title').value.trim(),
+          date: new Date().toISOString(),
+          image: base64ImageData,
+          text: document.getElementById('text').value.trim()
+        };
+
+        localPosts.push(newPost);
+
+        try {
+          localStorage.setItem('custom_posts', JSON.stringify(localPosts));
+          window.location.href = 'index.html';
+        } catch (err) {
+          alert('Image file size is too large for browser storage. Please select a smaller image.');
+        }
+      };
+
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>

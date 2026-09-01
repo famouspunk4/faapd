@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>faapd - Franklin Abboud</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 40px 20px;
+    }
+
+    .site-wrapper {
+      max-width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+      padding: 0 40px;
+    }
+
+    .content-left {
+      max-width: 580px;
+      width: 100%;
+    }
+
+    .logo {
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: bold;
+      font-size: 26px;
+      color: #000000;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 25px;
+    }
+
+    /* Profile Header & Socials */
+    .author-title {
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: bold;
+      font-size: 16px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .social-links {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      margin-bottom: 30px;
+    }
+
+    .social-links a {
+      color: #000000;
+      text-decoration: underline;
+      margin-right: 12px;
+    }
+
+    /* Feed Layout */
+    .post {
+      margin-bottom: 35px;
+    }
+
+    .post-header {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .author-tag {
+      background-color: #ffff00;
+      color: #000000;
+      padding: 1px 4px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .post-title a {
+      display: inline;
+      margin-left: 10px;
+      color: #000000;
+      font-weight: bold;
+      text-transform: uppercase; /* Converts title text to ALL CAPS */
+      text-decoration: none;      /* Removes default underline */
+    }
+
+    .post-title a:hover {
+      text-decoration: underline; /* Adds underline when hovering */
+    }
+
+    .post-date {
+      color: #666666;
+      margin-left: 6px;
+    }
+
+    .post-body {
+      display: flex;
+      gap: 15px;
+    }
+
+    .post-thumb {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+    }
+
+    .post-text {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="site-wrapper">
+    <div class="content-left">
+      <a href="index.html" class="logo">faapd</a>
+
+      <div class="author-title">Franklin Abboud</div>
+      <div class="social-links">
+        <a href="https://youtube.com/@djmodelfrankfamouspunk4?si=2f4m0Br-MloxtB2u" target="_blank" rel="noopener noreferrer">YouTube</a>
+        <a href="https://soundcloud.com/djmodelfrankfamouspunk4" target="_blank" rel="noopener noreferrer">SoundCloud</a>
+      </div>
+
+      <div id="author-feed"></div>
+    </div>
+  </div>
+
+  <script src="posts.js"></script>
+  <script>
+    const feedContainer = document.getElementById('author-feed');
+    const TARGET_AUTHOR = "Franklin Abboud";
+
+    const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+    const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
+    const allPosts = [...localPosts.slice().reverse(), ...staticPosts];
+
+    // Filter posts for Franklin only
+    const authorPosts = allPosts.filter(p => p.author.toLowerCase() === TARGET_AUTHOR.toLowerCase());
+
+    if (authorPosts.length === 0) {
+      feedContainer.innerHTML = "<p style='font-family: Arial; font-size: 11px;'>No posts found.</p>";
+    } else {
+      let authorFeedHtml = '';
+
+      authorPosts.forEach(post => {
+        const d = new Date(post.date);
+        const formattedDate = d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
+        const formattedTime = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        authorFeedHtml += `
+          <article class="post">
+            <div class="post-header">
+              <span class="author-tag">${post.author}</span>
+              <span class="post-title"><a href="post.html?id=${post.id}">${post.title}</a></span>
+              <span class="post-date">${formattedDate} @ ${formattedTime}</span>
+            </div>
+            <div class="post-body">
+              <img src="${post.image}" alt="Thumbnail" class="post-thumb" />
+              <div class="post-text"><p>${post.text}</p></div>
+            </div>
+          </article>
+        `;
+      });
+
+      feedContainer.innerHTML = authorFeedHtml;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>faapd</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 40px 20px;
+    }
+
+    .site-wrapper {
+      max-width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+      padding: 0 40px;
+    }
+
+    /* Left Section: Post & Comments */
+    .content-left {
+      max-width: 580px;
+      width: 100%;
+    }
+
+    .logo {
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: bold;
+      font-size: 26px;
+      color: #000000;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 25px;
+    }
+
+    /* Right Section: Navigation */
+    aside {
+      width: 140px;
+      flex-shrink: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      margin-top: 250px;
+      margin-right: 60px;
+    }
+
+    .nav-list {
+      list-style: none;
+      margin-bottom: 30px;
+      padding: 0;
+    }
+
+    .nav-list li {
+      margin-bottom: 6px;
+    }
+
+    .nav-list a {
+      color: #000000;
+      text-decoration: underline;
+    }
+
+    .nav-list a:hover {
+      background-color: #ffff00;
+    }
+
+    .author-key {
+      font-size: 10px;
+      color: #555555;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .author-key li {
+      margin-bottom: 6px;
+      list-style: none;
+    }
+
+    .author-key a {
+      color: #000000;
+      text-decoration: none;
+    }
+
+    .author-key a:hover {
+      text-decoration: underline;
+      background-color: transparent;
+    }
+
+    /* Single Post Display */
+    .single-post {
+      margin-bottom: 30px;
+    }
+
+    .post-header {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .author-tag {
+      display: inline;
+      margin-left: 6px;
+      background-color: #ffff00;
+      color: #000000;
+      text-decoration: none;
+      padding: 2px 4px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .post-title {
+      display: inline;
+      margin-left: 6px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .post-title a {
+      color: #000000;
+      text-decoration: none;
+    }
+
+    .post-title a:hover {
+      text-decoration: underline;
+    }
+
+    .post-date {
+      color: #888888;
+      margin-left: 8px;
+      font-size: 13px;
+    }
+
+    /* Delete Button Styling */
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #000000;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      font-weight: normal;
+      cursor: pointer;
+      margin-left: 8px;
+      padding: 0;
+      text-decoration: none;
+    }
+
+    .delete-btn:hover {
+      text-decoration: underline;
+    }
+
+    .full-post-image {
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      display: block;
+      margin: 15px 0;
+    }
+
+    .post-text-content {
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    /* Comments Section */
+    .comments-section {
+      border-top: 1px solid #eeeeee;
+      padding-top: 25px;
+      margin-top: 30px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .comments-section h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 15px;
+    }
+
+    .comment {
+      background: #f9f9f9;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+    }
+
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 11px;
+    }
+
+    .comment-timestamp {
+      font-size: 11px;
+      color: #888888;
+      font-family: monospace;
+    }
+
+    .comment-body {
+      font-family: Georgia, serif;
+      font-size: 12px;
+    }
+
+    .add-comment-form {
+      margin-top: 20px;
+    }
+
+    .add-comment-form input[type="text"],
+    .add-comment-form textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      background-color: #ffffff;
+      color: #000000;
+      outline: none;
+    }
+
+    .add-comment-form input[type="text"]::placeholder,
+    .add-comment-form textarea::placeholder {
+      color: #777777;
+    }
+
+    .add-comment-form button {
+      background: #000000;
+      color: #ffffff;
+      border: none;
+      padding: 6px 12px;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="site-wrapper">
+    
+    <!-- Left Column: Title + Single Post View + Comments -->
+    <div class="content-left">
+      <a href="index.html" class="logo">faapd</a>
+      
+      <main id="post-content"></main>
+
+      <section class="comments-section">
+        <h3>Comments</h3>
+        <div id="comments-list"></div>
+
+        <div class="add-comment-form">
+          <input type="text" id="comment-author" placeholder="Your Name" required>
+          <textarea id="comment-text" rows="3" placeholder="Leave a comment..." required></textarea>
+          <button onclick="addComment()">Submit Comment</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right Column: Navigation Directory -->
+    <aside>
+      <ul class="nav-list">
+        <li><a href="about.html">ABOUT</a></li>
+      </ul>
+
+      <ul class="author-key">
+        <li><a href="franklinabboud.html">Franklin Abboud</a></li>
+        <li><a href="patrickdaughety.html">Patrick Daughety</a></li>
+      </ul>
+    </aside>
+
+  </div>
+
+  <!-- Optional static fallback -->
+  <script src="posts.js"></script>
+
+  <script>
+    const ADMIN_PIN = "1234"; // Admin PIN for deletion verification
+
+    // 1. Extract post ID from URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get('id');
+
+    // 2. Fetch and combine posts from posts.js and localStorage
+    const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+    const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
+    const allPosts = [...localPosts, ...staticPosts];
+
+    // Loose equality check (==) ensures string URL params match numeric IDs
+    const post = allPosts.find(p => p.id == postId);
+
+    // 3. Format Date, Time & Check for Local Delete Permission
+    if (post) {
+      const d = new Date(post.date);
+      const formattedDate = d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
+      const formattedTime = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const fullTimestamp = `${formattedDate} @ ${formattedTime}`;
+
+      // Show delete button only if the post was locally created
+      const isLocal = localPosts.some(p => p.id == post.id);
+      const deleteBtnHtml = isLocal 
+        ? `<button onclick="deletePost(${post.id})" class="delete-btn">[delete]</button>` 
+        : '';
+
+      document.getElementById('post-content').innerHTML = `
+        <article class="single-post">
+          <div class="post-header">
+            <span class="author-tag">${post.author}</span>
+            <span class="post-title">${post.title}</span>
+            <span class="post-date">${fullTimestamp}</span>
+            ${deleteBtnHtml}
+          </div>
+          <div class="image-container">
+            <img src="${post.image}" alt="${post.title}" class="full-post-image">
+          </div>
+          <div class="post-text-content">
+            <p>${post.text}</p>
+          </div>
+        </article>
+      `;
+    } else {
+      document.getElementById('post-content').innerHTML = `<p>Post not found.</p>`;
+    }
+
+    // 4. Handle Post Deletion with PIN Check
+    function deletePost(id) {
+      const enteredPin = prompt("Author verification required.\nEnter Admin PIN to delete this post:");
+
+      if (enteredPin === null) return;
+
+      if (enteredPin === ADMIN_PIN) {
+        let stored = JSON.parse(localStorage.getItem('custom_posts')) || [];
+        stored = stored.filter(p => p.id != id);
+        localStorage.setItem('custom_posts', JSON.stringify(stored));
+        alert("Post removed successfully.");
+        window.location.href = 'index.html';
+      } else {
+        alert("Incorrect PIN. Access denied.");
+      }
+    }
+
+    // 5. Timestamp Helper Function for Comments
+    function getCurrentTimestamp() {
+      const now = new Date();
+      const date = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
+      const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return `${date} @ ${time}`;
+    }
+
+    // 6. Load & Display Comments
+    function loadComments() {
+      const savedComments = JSON.parse(localStorage.getItem(`comments_${postId}`)) || [];
+      const commentsList = document.getElementById('comments-list');
+      
+      if (savedComments.length === 0) {
+        commentsList.innerHTML = `<p style="font-size:11px; color:#888;"><em>No comments yet.</em></p>`;
+        return;
+      }
+
+      commentsList.innerHTML = savedComments.map(c => `
+        <div class="comment">
+          <div class="comment-header">
+            <strong>${c.author}</strong>
+            <span class="comment-timestamp">${c.timestamp || ''}</span>
+          </div>
+          <p class="comment-body">${c.text}</p>
+        </div>
+      `).join('');
+    }
+
+    // 7. Save New Comment
+    function addComment() {
+      const author = document.getElementById('comment-author').value.trim();
+      const text = document.getElementById('comment-text').value.trim();
+
+      if (!author || !text) {
+        alert('Please fill out both fields.');
+        return;
+      }
+
+      const newComment = {
+        author: author,
+        text: text,
+        timestamp: getCurrentTimestamp()
+      };
+
+      const savedComments = JSON.parse(localStorage.getItem(`comments_${postId}`)) || [];
+      savedComments.push(newComment);
+      
+      localStorage.setItem(`comments_${postId}`, JSON.stringify(savedComments));
+
+      document.getElementById('comment-author').value = '';
+      document.getElementById('comment-text').value = '';
+      loadComments();
+    }
+
+    loadComments();
+  </script>
+</body>
+</html>
