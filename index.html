@@ -158,29 +158,32 @@
 
     /* Side-by-Side Layout Starting At Top Edge */
     .post-content-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 15px;
-      margin-top: 10px;
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 15px !important;
+      margin-top: 10px !important;
     }
 
     .post-thumb {
-      width: 120px;
-      height: auto;
-      flex-shrink: 0;
-      display: block;
+      width: 120px !important;
+      height: auto !important;
+      flex-shrink: 0 !important;
+      display: block !important;
     }
 
     .post-text-content {
-      font-size: 13px;
-      line-height: 1.3;
-      flex-grow: 1;
-      white-space: pre-wrap;
+      font-size: 13px !important;
+      flex-grow: 1 !important;
+      white-space: pre-wrap !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
+    /* THIS IS THE CRITICAL MISSING RULE: Strips default browser top-margin from <p> */
     .post-text-content p {
-      margin: 0;
-      padding: 0;
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1.2 !important;
     }
   </style>
 </head>
