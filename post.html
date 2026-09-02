@@ -117,7 +117,7 @@
 
     .author-tag {
       display: inline;
-      margin-left: 6px;
+      margin-right: 6px;
       background-color: #ffff00;
       color: #000000;
       text-decoration: none;
@@ -128,27 +128,17 @@
 
     .post-title {
       display: inline;
-      margin-left: 6px;
+      margin-right: 6px;
       text-transform: uppercase;
       font-weight: bold;
     }
 
-    .post-title a {
-      color: #000000;
-      text-decoration: none;
-    }
-
-    .post-title a:hover {
-      text-decoration: underline;
-    }
-
     .post-date {
       color: #888888;
-      margin-left: 8px;
-      font-size: 13px;
+      font-weight: normal;
+      font-size: 11px;
     }
 
-    /* Delete Button Styling */
     .delete-btn {
       background: none;
       border: none;
@@ -178,6 +168,7 @@
       font-size: 13px;
       line-height: 1.6;
       margin-bottom: 30px;
+      white-space: pre-wrap;
     }
 
     /* Comments Section */
@@ -259,12 +250,10 @@
 <body>
 
   <div class="site-wrapper">
-    
-    <!-- Left Column: Title + Single Post View + Comments -->
     <div class="content-left">
       <a href="index.html" class="logo">faapd</a>
       
-      <main id="post-content"></main>
+      <main id="post-content">Loading post...</main>
 
       <section class="comments-section">
         <h3>Comments</h3>
@@ -278,7 +267,6 @@
       </section>
     </div>
 
-    <!-- Right Column: Navigation Directory -->
     <aside>
       <ul class="nav-list">
         <li><a href="about.html">ABOUT</a></li>
@@ -289,78 +277,80 @@
         <li><a href="patrickdaughety.html">Patrick Daughety</a></li>
       </ul>
     </aside>
-
   </div>
 
-  <!-- Optional static fallback -->
   <script src="posts.js"></script>
 
   <script>
-    const ADMIN_PIN = "1234"; // Admin PIN for deletion verification
+    const ADMIN_PIN = "1234";
 
-    // 1. Extract post ID from URL parameters
     const params = new URLSearchParams(window.location.search);
-    const postId = params.get('id');
+    const postFile = params.get('file');
+    const postId = params.get('id') || postFile;
 
-    // 2. Fetch and combine posts from posts.js and localStorage
-    const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
-    const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
-    const allPosts = [...localPosts, ...staticPosts];
+    async function loadPost() {
+      const container = document.getElementById('post-content');
 
-    // Loose equality check (==) ensures string URL params match numeric IDs
-    const post = allPosts.find(p => p.id == postId);
+      // 1. Check local/static storage first
+      const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+      const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
+      let foundPost = [...localPosts, ...staticPosts].find(p => p.id == postId || p.url === `posts/${postFile}`);
 
-    // 3. Format Date, Time & Check for Local Delete Permission
-    if (post) {
-      const d = new Date(post.date);
-      const formattedDate = d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
-      const formattedTime = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const fullTimestamp = `${formattedDate} @ ${formattedTime}`;
+      if (foundPost) {
+        renderSinglePost(foundPost);
+        return;
+      }
 
-      // Show delete button only if the post was locally created
-      const isLocal = localPosts.some(p => p.id == post.id);
-      const deleteBtnHtml = isLocal 
-        ? `<button onclick="deletePost(${post.id})" class="delete-btn">[delete]</button>` 
-        : '';
+      // 2. Otherwise fetch raw file from GitHub /posts/ directory
+      if (postFile) {
+        try {
+          const res = await fetch(`posts/${postFile}`);
+          if (!res.ok) throw new Error("File not found");
+          const htmlText = await res.text();
 
-      document.getElementById('post-content').innerHTML = `
-        <article class="single-post">
-          <div class="post-header">
-            <span class="author-tag">${post.author}</span>
-            <span class="post-title">${post.title}</span>
-            <span class="post-date">${fullTimestamp}</span>
-            ${deleteBtnHtml}
-          </div>
-          <div class="image-container">
-            <img src="${post.image}" alt="${post.title}" class="full-post-image">
-          </div>
-          <div class="post-text-content">
-            <p>${post.text}</p>
-          </div>
-        </article>
-      `;
-    } else {
-      document.getElementById('post-content').innerHTML = `<p>Post not found.</p>`;
-    }
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(htmlText, 'text/html');
 
-    // 4. Handle Post Deletion with PIN Check
-    function deletePost(id) {
-      const enteredPin = prompt("Author verification required.\nEnter Admin PIN to delete this post:");
+          const author = doc.querySelector('.author-tag')?.textContent?.trim() || "FRANKLIN ABBOUD";
+          const title = doc.querySelector('.post-title')?.textContent?.trim() || postFile.replace('.html', '').replace(/-/g, ' ').toUpperCase();
+          const timestamp = doc.querySelector('.post-date')?.textContent?.trim() || '';
+          const imageSrc = doc.querySelector('.full-post-image, .post-thumb, img')?.getAttribute('src') || '';
+          const bodyText = doc.querySelector('.post-text-content, .post-text, p')?.textContent?.trim() || '';
 
-      if (enteredPin === null) return;
-
-      if (enteredPin === ADMIN_PIN) {
-        let stored = JSON.parse(localStorage.getItem('custom_posts')) || [];
-        stored = stored.filter(p => p.id != id);
-        localStorage.setItem('custom_posts', JSON.stringify(stored));
-        alert("Post removed successfully.");
-        window.location.href = 'index.html';
+          renderSinglePost({
+            author: author,
+            title: title,
+            dateStr: timestamp,
+            image: imageSrc,
+            text: bodyText
+          });
+        } catch (e) {
+          container.innerHTML = `<p>Post not found.</p>`;
+        }
       } else {
-        alert("Incorrect PIN. Access denied.");
+        container.innerHTML = `<p>Post not found.</p>`;
       }
     }
 
-    // 5. Timestamp Helper Function for Comments
+    function renderSinglePost(p) {
+      const imageTag = p.image ? `<img src="${p.image}" alt="${p.title}" class="full-post-image">` : '';
+      
+      document.getElementById('post-content').innerHTML = `
+        <article class="single-post">
+          <div class="post-header">
+            <span class="author-tag">${p.author}</span>
+            <span class="post-title">${p.title}</span>
+            <span class="post-date">${p.dateStr || ''}</span>
+          </div>
+          ${imageTag}
+          <div class="post-text-content">
+            <p>${p.text}</p>
+          </div>
+        </article>
+      `;
+    }
+
+    /* Comments Section */
     function getCurrentTimestamp() {
       const now = new Date();
       const date = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
@@ -368,7 +358,6 @@
       return `${date} @ ${time}`;
     }
 
-    // 6. Load & Display Comments
     function loadComments() {
       const savedComments = JSON.parse(localStorage.getItem(`comments_${postId}`)) || [];
       const commentsList = document.getElementById('comments-list');
@@ -389,7 +378,6 @@
       `).join('');
     }
 
-    // 7. Save New Comment
     function addComment() {
       const author = document.getElementById('comment-author').value.trim();
       const text = document.getElementById('comment-text').value.trim();
@@ -415,6 +403,7 @@
       loadComments();
     }
 
+    loadPost();
     loadComments();
   </script>
 </body>
