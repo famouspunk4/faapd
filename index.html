@@ -167,6 +167,7 @@
 
     .post-text {
       flex: 1;
+      white-space: pre-wrap;
     }
 
     /* --- Silhouette Trigger Button (Top Right) --- */
@@ -231,7 +232,7 @@
     }
 
     .modal-close-btn {
-      display: none
+      display: none;
     }
 
     .modal-close-btn:hover {
@@ -386,9 +387,7 @@
   <!-- Top Right Silhouette Button -->
   <button class="auth-icon-btn" onclick="openModal('login-modal')" aria-label="account options">
     <svg viewBox="0 0 100 100">
-      <!-- Solid Circle Head -->
       <circle cx="50" cy="24" r="16" fill="currentColor" />
-      <!-- Solid Downward Triangle Body -->
       <polygon points="12,46 88,46 50,86" fill="currentColor" />
     </svg>
   </button>
@@ -456,7 +455,7 @@
       
       <div class="modal-header">
         <h2></h2>
-             </div>
+      </div>
 
       <form id="signup-form" class="modal-form" action="/register" method="POST" onsubmit="return validateRegisterForm(event)">
         <div class="form-group">
@@ -498,35 +497,62 @@
   <script src="posts.js"></script>
   <script>
     const feedContainer = document.getElementById('feed-container');
-
-    // Secret PIN for author management
     const ADMIN_PIN = "1234";
+
+    async function fetchPostContent(filePath) {
+      try {
+        const response = await fetch(`posts/${filePath}`);
+        if (!response.ok) return null;
+        const htmlText = await response.text();
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+
+        const title = doc.querySelector('h1')?.textContent || filePath.replace('.html', '').replace(/-/g, ' ');
+        const metaText = doc.querySelector('.meta')?.textContent || '';
+        const imageSrc = doc.querySelector('.featured-image')?.getAttribute('src') || '';
+        const bodyText = doc.querySelector('.content')?.textContent || '';
+
+        // Extract author and date from metadata "By Author — Date"
+        let author = "faapd";
+        let dateStr = "";
+        if (metaText.includes("By ")) {
+          const parts = metaText.split("—");
+          author = parts[0].replace("By ", "").trim();
+          if (parts[1]) dateStr = parts[1].trim();
+        }
+
+        return {
+          id: filePath,
+          title: title,
+          author: author,
+          dateStr: dateStr,
+          image: imageSrc,
+          text: bodyText,
+          url: `posts/${filePath}`
+        };
+      } catch (e) {
+        console.error("Failed to parse post content:", e);
+        return null;
+      }
+    }
 
     async function loadGitHubPosts() {
       const repoOwner = "famouspunk4";
       const repoName = "faapd";
 
       try {
-        // Fetch files in /posts from GitHub REST API
         const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/posts`);
         if (!response.ok) return [];
 
         const files = await response.json();
         const htmlFiles = files.filter(file => file.name.endsWith('.html'));
 
-        // Map GitHub API files to match the local post object structure
-        return htmlFiles.map(file => {
-          const cleanTitle = file.name.replace('.html', '').replace(/-/g, ' ');
-          return {
-            id: file.name,
-            title: cleanTitle,
-            author: "faapd",
-            date: new Date().toISOString(),
-            image: "", // Placeholder thumbnail
-            text: `<a href="posts/${file.name}">Read full post &rarr;</a>`,
-            url: `posts/${file.name}`
-          };
-        });
+        // Fetch each post HTML file and parse its internal layout
+        const postsPromises = htmlFiles.map(file => fetchPostContent(file.name));
+        const parsedPosts = await Promise.all(postsPromises);
+
+        return parsedPosts.filter(p => p !== null);
       } catch (err) {
         console.error("Error fetching GitHub posts:", err);
         return [];
@@ -534,14 +560,10 @@
     }
 
     async function renderFeed() {
-      // Fetch dynamic posts from GitHub API
       const githubPosts = await loadGitHubPosts();
-
-      // Fetch local storage posts and static fallback data
       const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
       const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
 
-      // Merge GitHub posts with existing post arrays
       const allPosts = [...githubPosts, ...localPosts.slice().reverse(), ...staticPosts];
 
       if (allPosts.length === 0) {
@@ -552,21 +574,24 @@
       let fullFeedHtml = '';
 
       allPosts.forEach(post => {
-        const d = new Date(post.date);
+        let fullTimestamp = post.dateStr || '';
+        if (!fullTimestamp && post.date) {
+          const d = new Date(post.date);
+          const formattedDate = d.toLocaleDateString('en-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: '2-digit'
+          }).replace(/\//g, '.');
 
-        const formattedDate = d.toLocaleDateString('en-US', {
-          month: '2-digit',
-          day: '2-digit',
-          year: '2-digit'
-        }).replace(/\//g, '.');
+          const formattedTime = d.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
 
-        const formattedTime = d.toLocaleTimeString('en-GB', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        });
+          fullTimestamp = `${formattedDate} @ ${formattedTime}`;
+        }
 
-        const fullTimestamp = `${formattedDate} @ ${formattedTime}`;
         const postLink = post.url || `post.html?id=${post.id}`;
         const imageTag = post.image ? `<img src="${post.image}" alt="Thumbnail" class="post-thumb" />` : '';
 
@@ -594,13 +619,11 @@
       }
     }
 
-    // Initialize feed rendering
     renderFeed();
 
-    // Password-protected delete function
     function deletePost(id) {
       const enteredPin = prompt("Author verification required.\nEnter Admin PIN to delete this post:");
-      if (enteredPin === null) return; // User cancelled prompt
+      if (enteredPin === null) return;
       if (enteredPin === ADMIN_PIN) {
         let stored = JSON.parse(localStorage.getItem('custom_posts')) || [];
         stored = stored.filter(p => p.id != id);
