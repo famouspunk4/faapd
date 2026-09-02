@@ -68,6 +68,7 @@
     .nav-list a {
       color: #000000;
       text-decoration: underline;
+      cursor: pointer;
     }
 
     .nav-list a:hover {
@@ -186,6 +187,66 @@
       line-height: 1.3 !important;
       display: block !important;
     }
+
+    /* Modal Styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border: 1px solid #000000;
+      padding: 25px;
+      width: 300px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .modal-box h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-box input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      font-size: 12px;
+      font-family: Arial, sans-serif;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .modal-actions button {
+      background: #000000;
+      color: #ffffff;
+      border: none;
+      padding: 6px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .modal-actions button.cancel-btn {
+      background: #ffffff;
+      color: #000000;
+      border: 1px solid #000000;
+    }
   </style>
 </head>
 <body>
@@ -199,9 +260,10 @@
     <aside>
       <ul class="nav-list">
         <li><a href="about.html">ABOUT</a></li>
+        <li><a id="account-link">ACCOUNT</a></li>
       </ul>
 
-      <!-- Author links configured with URL parameters for filtering -->
+      <!-- Author links passing URL parameters for filtering -->
       <ul class="author-key">
         <li><a href="index.html?author=FRANKLIN%20ABBOUD">Franklin Abboud</a></li>
         <li><a href="index.html?author=PATRICK%20DAUGHETY">Patrick Daughety</a></li>
@@ -209,13 +271,56 @@
     </aside>
   </div>
 
+  <!-- Login Modal -->
+  <div id="login-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h3>Account Login</h3>
+      <input type="password" id="modal-passcode" placeholder="Enter Passcode" />
+      <div class="modal-actions">
+        <button class="cancel-btn" id="modal-cancel">Cancel</button>
+        <button id="modal-submit">Enter</button>
+      </div>
+    </div>
+  </div>
+
   <script src="posts.js"></script>
 
   <script>
+    // Modal controls
+    const accountLink = document.getElementById('account-link');
+    const loginModal = document.getElementById('login-modal');
+    const modalCancel = document.getElementById('modal-cancel');
+    const modalSubmit = document.getElementById('modal-submit');
+    const modalPasscode = document.getElementById('modal-passcode');
+
+    accountLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginModal.style.display = 'flex';
+      modalPasscode.focus();
+    });
+
+    modalCancel.addEventListener('click', () => {
+      loginModal.style.display = 'none';
+      modalPasscode.value = '';
+    });
+
+    modalSubmit.addEventListener('click', handleLogin);
+    modalPasscode.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    function handleLogin() {
+      if (modalPasscode.value.trim() !== '') {
+        loginModal.style.display = 'none';
+        window.location.href = 'create.html';
+      } else {
+        alert('Please enter a passcode.');
+      }
+    }
+
     async function loadFeed() {
       const container = document.getElementById('feed-container');
 
-      // Check URL query parameters for author filtering
       const urlParams = new URLSearchParams(window.location.search);
       const selectedAuthor = urlParams.get('author');
 
@@ -257,7 +362,6 @@
         console.error("Could not fetch remote GitHub posts:", err);
       }
 
-      // Filter post feed by clicked author if parameter is present
       if (selectedAuthor) {
         allPosts = allPosts.filter(post => {
           return post.author && post.author.toUpperCase() === selectedAuthor.toUpperCase();
