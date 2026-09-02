@@ -40,7 +40,7 @@
     /* Centered form container pulled up level with top layout */
     .form-container {
       max-width: 580px;
-      margin: 60px auto 0 auto; /* Pulls form up to remain centered while keeping logo in position */
+      margin: 60px auto 0 auto;
     }
 
     /* Form Styles */
@@ -58,6 +58,7 @@
     }
 
     input[type="text"],
+    input[type="password"],
     textarea,
     input[type="file"] {
       width: 100%;
@@ -88,10 +89,11 @@
       cursor: pointer;
     }
 
-    .timestamp,
-    small {
-      font-size: 11px !important;
-      color: #555555;
+    #status {
+      margin-top: 15px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -104,6 +106,11 @@
     <!-- Centered Form -->
     <div class="form-container">
       <form id="post-form">
+        <div class="form-group">
+          <label for="github-token">GitHub Token</label>
+          <input type="password" id="github-token" placeholder="Paste your Fine-Grained PAT here" required>
+        </div>
+
         <div class="form-group">
           <label for="author">Author</label>
           <input type="text" id="author" value="" required>
@@ -124,45 +131,149 @@
           <textarea id="text" rows="5" required></textarea>
         </div>
 
-        <button type="submit">Publish Post</button>
+        <button type="submit" id="submit-btn">Publish Post</button>
       </form>
+
+      <div id="status"></div>
     </div>
   </div>
 
   <script>
-    document.getElementById('post-form').addEventListener('submit', function(e) {
+    // Load saved token from localStorage if available
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedToken = localStorage.getItem('gh_token');
+      if (savedToken) {
+        document.getElementById('github-token').value = savedToken;
+      }
+    });
+
+    // Helper function to turn strings into clean URL filenames
+    function slugify(text) {
+      return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')        // Replace spaces with -
+        .replace(/[^\w\-]+/g, '')    // Remove non-word characters
+        .replace(/\-\-+/g, '-');      // Replace multiple - with single -
+    }
+
+    document.getElementById('post-form').addEventListener('submit', async function(e) {
       e.preventDefault();
 
+      // Retrieve raw token input and sanitize non-ASCII/hidden whitespace characters
+      let rawToken = document.getElementById('github-token').value;
+      const token = rawToken.replace(/[^\x20-\x7E]/g, "").trim();
+
+      const author = document.getElementById('author').value.trim();
+      const title = document.getElementById('title').value.trim();
+      const text = document.getElementById('text').value.trim();
       const fileInput = document.getElementById('image-file');
       const file = fileInput.files[0];
+      const statusDiv = document.getElementById('status');
+      const submitBtn = document.getElementById('submit-btn');
+
+      if (!token) {
+        alert("Please enter a valid GitHub Access Token.");
+        return;
+      }
+
+      // Save sanitized token locally for convenience on future posts
+      localStorage.setItem('gh_token', token);
 
       if (!file) {
         alert("Please select an image file.");
         return;
       }
 
+      statusDiv.style.color = "#000000";
+      statusDiv.textContent = "Publishing to GitHub...";
+      submitBtn.disabled = true;
+
+      // Read image file as Base64
       const reader = new FileReader();
-
-      reader.onload = function(event) {
+      reader.onload = async function(event) {
         const base64ImageData = event.target.result;
-        const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+        const formattedDate = new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
 
-        const newPost = {
-          id: Date.now(),
-          author: document.getElementById('author').value.trim(),
-          title: document.getElementById('title').value.trim(),
-          date: new Date().toISOString(),
-          image: base64ImageData,
-          text: document.getElementById('text').value.trim()
-        };
+        // 1. Generate full HTML page layout for the individual post
+        const postHtmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} - faapd</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: #ffffff; color: #000000; font-family: Georgia, "Times New Roman", Times, serif; font-size: 13px; line-height: 1.5; padding: 40px 20px; }
+    .site-wrapper { max-width: 100%; padding: 0 40px; }
+    .logo { font-family: Arial, Helvetica, sans-serif; font-weight: bold; font-size: 26px; color: #000000; text-decoration: none; display: inline-block; }
+    .post-container { max-width: 580px; margin: 60px auto 0 auto; }
+    h1 { font-family: Arial, Helvetica, sans-serif; font-size: 20px; margin-bottom: 5px; }
+    .meta { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #555555; margin-bottom: 20px; }
+    .featured-image { width: 100%; height: auto; margin-bottom: 20px; display: block; }
+    .content { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <div class="site-wrapper">
+    <a href="../index.html" class="logo">faapd</a>
+    <div class="post-container">
+      <h1>${title}</h1>
+      <div class="meta">By ${author} — ${formattedDate}</div>
+      <img src="${base64ImageData}" alt="${title}" class="featured-image">
+      <div class="content">${text}</div>
+    </div>
+  </div>
+</body>
+</html>`;
 
-        localPosts.push(newPost);
+        // 2. Prepare filename and GitHub API path
+        const filename = `${slugify(title)}.html`;
+        const repoOwner = "famouspunk4";
+        const repoName = "faapd";
+        const apiPath = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/posts/${filename}`;
+
+        // 3. Encode full HTML file content into Base64 for the API payload
+        const encodedContent = btoa(unescape(encodeURIComponent(postHtmlContent)));
 
         try {
-          localStorage.setItem('custom_posts', JSON.stringify(localPosts));
-          window.location.href = 'index.html';
+          const response = await fetch(apiPath, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github+json'
+            },
+            body: JSON.stringify({
+              message: `Add post: ${title}`,
+              content: encodedContent,
+              branch: "main"
+            })
+          });
+
+          if (response.ok) {
+            statusDiv.style.color = "green";
+            statusDiv.textContent = `Success! Post published. Redirecting to homepage...`;
+            
+            // Redirects to index.html 1.5 seconds after successful API response
+            setTimeout(() => {
+              window.location.href = 'index.html';
+            }, 1500);
+          } else {
+            const errData = await response.json();
+            statusDiv.style.color = "red";
+            statusDiv.textContent = `Error: ${errData.message}`;
+            submitBtn.disabled = false;
+          }
         } catch (err) {
-          alert('Image file size is too large for browser storage. Please select a smaller image.');
+          statusDiv.style.color = "red";
+          statusDiv.textContent = `Request failed: ${err.message}`;
+          submitBtn.disabled = false;
         }
       };
 
