@@ -20,6 +20,31 @@
       font-size: 13px;
       line-height: 1.5;
       padding: 40px 20px;
+      position: relative;
+    }
+
+    /* Top Right Human Silhouette Icon */
+    .user-account-icon {
+      position: absolute;
+      top: 20px;
+      right: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      transition: opacity 0.2s ease;
+    }
+
+    .user-account-icon:hover {
+      opacity: 0.6;
+    }
+
+    .user-account-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: #000000;
     }
 
     .site-wrapper {
@@ -68,7 +93,6 @@
     .nav-list a {
       color: #000000;
       text-decoration: underline;
-      cursor: pointer;
     }
 
     .nav-list a:hover {
@@ -251,6 +275,13 @@
 </head>
 <body>
 
+  <!-- Top Right Human Silhouette Icon Link -->
+  <a id="account-icon-btn" class="user-account-icon" title="Account Login">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </svg>
+  </a>
+
   <div class="site-wrapper">
     <div class="content-left">
       <a href="index.html" class="logo">faapd</a>
@@ -260,7 +291,6 @@
     <aside>
       <ul class="nav-list">
         <li><a href="about.html">ABOUT</a></li>
-        <li><a id="account-link">ACCOUNT</a></li>
       </ul>
 
       <!-- Author links passing URL parameters for filtering -->
@@ -286,14 +316,14 @@
   <script src="posts.js"></script>
 
   <script>
-    // Modal controls
-    const accountLink = document.getElementById('account-link');
+    // Modal controls connected to top-right icon
+    const accountIconBtn = document.getElementById('account-icon-btn');
     const loginModal = document.getElementById('login-modal');
     const modalCancel = document.getElementById('modal-cancel');
     const modalSubmit = document.getElementById('modal-submit');
     const modalPasscode = document.getElementById('modal-passcode');
 
-    accountLink.addEventListener('click', (e) => {
+    accountIconBtn.addEventListener('click', (e) => {
       e.preventDefault();
       loginModal.style.display = 'flex';
       modalPasscode.focus();
