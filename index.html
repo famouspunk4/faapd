@@ -31,13 +31,11 @@
       transition: filter 0.25s ease;
     }
 
-    /* Blur class applied to site background when modal is open */
     .site-wrapper.body-blurred {
       filter: blur(6px);
       pointer-events: none;
     }
 
-    /* Left Section: Wraps title and post feed together */
     .content-left {
       max-width: 580px;
       width: 100%;
@@ -53,7 +51,6 @@
       margin-bottom: 25px;
     }
 
-    /* Right Section: Navigation */
     aside {
       width: 140px;
       flex-shrink: 0;
@@ -125,15 +122,16 @@
 
     .author-tag {
       display: inline;
-      margin-left: 6px;
-      background-color: #ffff00; /* Yellow highlight background */
-      color: #000000;           /* Keeps text readable black */
+      margin-right: 6px;
+      background-color: #ffff00;
+      color: #000000;
       text-decoration: none;
+      padding: 1px 3px;
     }
 
     .post-title {
       display: inline;
-      margin-left: 6px;
+      margin-right: 6px;
     }
 
     .post-title a {
@@ -148,7 +146,6 @@
     .post-date {
       color: #888888;
       font-weight: normal;
-      margin-left: 6px;
     }
 
     .post-body {
@@ -170,7 +167,6 @@
       white-space: pre-wrap;
     }
 
-    /* --- Silhouette Trigger Button (Top Right) --- */
     .auth-icon-btn {
       position: absolute;
       top: 40px;
@@ -198,16 +194,15 @@
       stroke-linejoin: round;
     }
 
-    /* --- Modal Backdrops (Blurred Glass Background) --- */
     .modal-backdrop {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background-color: rgba(255, 255, 255, 0.35); /* Semi-transparent white */
-      -webkit-backdrop-filter: blur(2px);           /* Backdrop blur for Safari */
-      backdrop-filter: blur(2px);                   /* Standard Backdrop blur */
+      background-color: rgba(255, 255, 255, 0.35);
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -224,35 +219,21 @@
       pointer-events: auto;
     }
 
-    /* --- Modal Container & Form Elements --- */
     .modal-container {
       width: 100%;
       max-width: 340px;
       position: relative;
     }
 
-    .modal-close-btn {
-      display: none;
-    }
+    .modal-close-btn { display: none; }
 
-    .modal-close-btn:hover {
-      opacity: 0.5;
-    }
-
-    .modal-header {
-      margin-bottom: 28px;
-    }
+    .modal-header { margin-bottom: 28px; }
 
     .modal-header h2 {
       font-size: 20px;
       font-weight: 500;
       letter-spacing: -0.02em;
       margin-bottom: 4px;
-    }
-
-    .modal-header p.subtitle {
-      font-size: 13px;
-      color: #666666;
     }
 
     .modal-form {
@@ -294,9 +275,7 @@
       font-family: inherit;
     }
 
-    .form-group input:focus {
-      border-bottom-color: #000000;
-    }
+    .form-group input:focus { border-bottom-color: #000000; }
 
     .toggle-pass-btn {
       position: absolute;
@@ -310,10 +289,6 @@
       padding: 4px 0;
     }
 
-    .toggle-pass-btn:hover {
-      color: #000000;
-    }
-
     .form-options {
       display: flex;
       justify-content: flex-end;
@@ -324,11 +299,6 @@
       font-size: 11px;
       color: #666666;
       text-decoration: none;
-    }
-
-    .forgot-link:hover {
-      color: #000000;
-      text-decoration: underline;
     }
 
     .error-message {
@@ -376,15 +346,10 @@
       padding: 0;
       font-family: inherit;
     }
-
-    .modal-footer button:hover {
-      opacity: 0.7;
-    }
   </style>
 </head>
 <body>
 
-  <!-- Top Right Silhouette Button -->
   <button class="auth-icon-btn" onclick="openModal('login-modal')" aria-label="account options">
     <svg viewBox="0 0 100 100">
       <circle cx="50" cy="24" r="16" fill="currentColor" />
@@ -393,13 +358,11 @@
   </button>
 
   <div class="site-wrapper" id="site-wrapper">
-    <!-- Left Column: Title + Posts Feed -->
     <div class="content-left">
       <a href="index.html" class="logo">faapd</a>
       <main id="feed-container">Loading posts...</main>
     </div>
 
-    <!-- Right Column: Navigation Directory -->
     <aside>
       <ul class="nav-list">
         <li><a href="about.html">ABOUT</a></li>
@@ -415,18 +378,12 @@
   <!-- LOG IN MODAL -->
   <div id="login-modal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'login-modal')">
     <div class="modal-container">
-      <button class="modal-close-btn" onclick="closeModal('login-modal')" aria-label="close">✕</button>
-      
-      <div class="modal-header">
-        <h2></h2>
-      </div>
-
+      <div class="modal-header"><h2></h2></div>
       <form id="login-form" class="modal-form" action="/login" method="POST">
         <div class="form-group">
           <label for="login-user">username or email</label>
           <input type="text" id="login-user" name="username" required autocomplete="username">
         </div>
-
         <div class="form-group">
           <label for="login-pass">password</label>
           <div class="input-wrapper">
@@ -434,14 +391,9 @@
             <button type="button" class="toggle-pass-btn" onclick="togglePasswordVisibility('login-pass', this)">show</button>
           </div>
         </div>
-
-        <div class="form-options">
-          <a href="/reset-password" class="forgot-link">forgot password?</a>
-        </div>
-
+        <div class="form-options"><a href="/reset-password" class="forgot-link">forgot password?</a></div>
         <button type="submit" class="btn-submit">faapd</button>
       </form>
-
       <div class="modal-footer">
         <button onclick="switchModal('login-modal', 'register-modal')">create account</button>
       </div>
@@ -451,23 +403,16 @@
   <!-- CREATE ACCOUNT MODAL -->
   <div id="register-modal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'register-modal')">
     <div class="modal-container">
-      <button class="modal-close-btn" onclick="closeModal('register-modal')" aria-label="close">✕</button>
-      
-      <div class="modal-header">
-        <h2></h2>
-      </div>
-
+      <div class="modal-header"><h2></h2></div>
       <form id="signup-form" class="modal-form" action="/register" method="POST" onsubmit="return validateRegisterForm(event)">
         <div class="form-group">
           <label for="reg-username">username</label>
           <input type="text" id="reg-username" name="username" required autocomplete="username">
         </div>
-
         <div class="form-group">
           <label for="reg-email">email</label>
           <input type="email" id="reg-email" name="email" required autocomplete="email">
         </div>
-
         <div class="form-group">
           <label for="reg-pass">password</label>
           <div class="input-wrapper">
@@ -475,7 +420,6 @@
             <button type="button" class="toggle-pass-btn" onclick="togglePasswordVisibility('reg-pass', this)">show</button>
           </div>
         </div>
-
         <div class="form-group">
           <label for="reg-confirm-pass">con</label>
           <div class="input-wrapper">
@@ -484,10 +428,8 @@
           </div>
           <div id="password-error" class="error-message">passwords do not match</div>
         </div>
-
         <button type="submit" class="btn-submit">faapd</button>
       </form>
-
       <div class="modal-footer">
         <button onclick="switchModal('register-modal', 'login-modal')">log in</button>
       </div>
@@ -497,39 +439,42 @@
   <script src="posts.js"></script>
   <script>
     const feedContainer = document.getElementById('feed-container');
-    const ADMIN_PIN = "1234";
 
-    async function fetchPostContent(filePath) {
+    // Helper: Formats Date object into "MM.DD.YY @ HH:MM:SS"
+    function formatExactTimestamp(dateObj) {
+      if (!dateObj || isNaN(dateObj.getTime())) return '';
+      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      const yy = String(dateObj.getFullYear()).slice(-2);
+      const hh = String(dateObj.getHours()).padStart(2, '0');
+      const min = String(dateObj.getMinutes()).padStart(2, '0');
+      const ss = String(dateObj.getSeconds()).padStart(2, '0');
+      return `${mm}.${dd}.${yy} @ ${hh}:${min}:${ss}`;
+    }
+
+    async function fetchPostContent(file) {
       try {
-        const response = await fetch(`posts/${filePath}`);
+        const response = await fetch(`posts/${file.name}`);
         if (!response.ok) return null;
         const htmlText = await response.text();
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
 
-        const title = doc.querySelector('h1')?.textContent || filePath.replace('.html', '').replace(/-/g, ' ');
-        const metaText = doc.querySelector('.meta')?.textContent || '';
-        const imageSrc = doc.querySelector('.featured-image')?.getAttribute('src') || '';
-        const bodyText = doc.querySelector('.content')?.textContent || '';
-
-        // Extract author and date from metadata "By Author — Date"
-        let author = "faapd";
-        let dateStr = "";
-        if (metaText.includes("By ")) {
-          const parts = metaText.split("—");
-          author = parts[0].replace("By ", "").trim();
-          if (parts[1]) dateStr = parts[1].trim();
-        }
+        const title = doc.querySelector('.post-title, h1')?.textContent || file.name.replace('.html', '').replace(/-/g, ' ');
+        const author = doc.querySelector('.author-tag')?.textContent || "faapd";
+        const dateStr = doc.querySelector('.post-date, .meta')?.textContent || formatExactTimestamp(new Date());
+        const imageSrc = doc.querySelector('.post-thumb, .featured-image')?.getAttribute('src') || '';
+        const bodyText = doc.querySelector('.post-text, .content')?.textContent || '';
 
         return {
-          id: filePath,
+          id: file.name,
           title: title,
           author: author,
           dateStr: dateStr,
           image: imageSrc,
           text: bodyText,
-          url: `posts/${filePath}`
+          url: `posts/${file.name}`
         };
       } catch (e) {
         console.error("Failed to parse post content:", e);
@@ -548,8 +493,7 @@
         const files = await response.json();
         const htmlFiles = files.filter(file => file.name.endsWith('.html'));
 
-        // Fetch each post HTML file and parse its internal layout
-        const postsPromises = htmlFiles.map(file => fetchPostContent(file.name));
+        const postsPromises = htmlFiles.map(file => fetchPostContent(file));
         const parsedPosts = await Promise.all(postsPromises);
 
         return parsedPosts.filter(p => p !== null);
@@ -576,20 +520,7 @@
       allPosts.forEach(post => {
         let fullTimestamp = post.dateStr || '';
         if (!fullTimestamp && post.date) {
-          const d = new Date(post.date);
-          const formattedDate = d.toLocaleDateString('en-US', {
-            month: '2-digit',
-            day: '2-digit',
-            year: '2-digit'
-          }).replace(/\//g, '.');
-
-          const formattedTime = d.toLocaleTimeString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-          });
-
-          fullTimestamp = `${formattedDate} @ ${formattedTime}`;
+          fullTimestamp = formatExactTimestamp(new Date(post.date));
         }
 
         const postLink = post.url || `post.html?id=${post.id}`;
@@ -621,21 +552,7 @@
 
     renderFeed();
 
-    function deletePost(id) {
-      const enteredPin = prompt("Author verification required.\nEnter Admin PIN to delete this post:");
-      if (enteredPin === null) return;
-      if (enteredPin === ADMIN_PIN) {
-        let stored = JSON.parse(localStorage.getItem('custom_posts')) || [];
-        stored = stored.filter(p => p.id != id);
-        localStorage.setItem('custom_posts', JSON.stringify(stored));
-        alert("Post removed successfully.");
-        location.reload();
-      } else {
-        alert("Incorrect PIN. Access denied.");
-      }
-    }
-
-    /* --- Modal Controls with Blur State --- */
+    /* --- Modal Controls --- */
     function openModal(id) {
       document.getElementById(id).classList.add('active');
       document.getElementById('site-wrapper').classList.add('body-blurred');
@@ -647,9 +564,7 @@
     }
 
     function closeModalOnBackdrop(e, id) {
-      if (e.target.id === id) {
-        closeModal(id);
-      }
+      if (e.target.id === id) closeModal(id);
     }
 
     function switchModal(closeId, openId) {
@@ -678,7 +593,6 @@
         error.style.display = "block";
         return false;
       }
-
       error.style.display = "none";
       return true;
     }
