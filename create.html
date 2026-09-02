@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd</title>
+  <title>faapd - Create Post</title>
 
   <style>
     * {
@@ -113,7 +113,7 @@
 
         <div class="form-group">
           <label for="author">Author</label>
-          <input type="text" id="author" value="" required>
+          <input type="text" id="author" value="FRANKLIN ABBOUD" required>
         </div>
 
         <div class="form-group">
@@ -158,15 +158,26 @@
         .replace(/\-\-+/g, '-');      // Replace multiple - with single -
     }
 
+    // Helper function to format timestamp as MM.DD.YY @ HH:MM:SS
+    function getExactFormattedTimestamp() {
+      const now = new Date();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const yy = String(now.getFullYear()).slice(-2);
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      return `${mm}.${dd}.${yy} @ ${hh}:${min}:${ss}`;
+    }
+
     document.getElementById('post-form').addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      // Retrieve raw token input and sanitize non-ASCII/hidden whitespace characters
       let rawToken = document.getElementById('github-token').value;
       const token = rawToken.replace(/[^\x20-\x7E]/g, "").trim();
 
-      const author = document.getElementById('author').value.trim();
-      const title = document.getElementById('title').value.trim();
+      const author = document.getElementById('author').value.trim().toUpperCase();
+      const title = document.getElementById('title').value.trim().toUpperCase();
       const text = document.getElementById('text').value.trim();
       const fileInput = document.getElementById('image-file');
       const file = fileInput.files[0];
@@ -178,7 +189,6 @@
         return;
       }
 
-      // Save sanitized token locally for convenience on future posts
       localStorage.setItem('gh_token', token);
 
       if (!file) {
@@ -190,17 +200,12 @@
       statusDiv.textContent = "Publishing to GitHub...";
       submitBtn.disabled = true;
 
-      // Read image file as Base64
       const reader = new FileReader();
       reader.onload = async function(event) {
         const base64ImageData = event.target.result;
-        const formattedDate = new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
+        const exactTimestamp = getExactFormattedTimestamp();
 
-        // 1. Generate full HTML page layout for the individual post
+        // Exact clean HTML layout for individual post files
         const postHtmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,35 +215,42 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: #ffffff; color: #000000; font-family: Georgia, "Times New Roman", Times, serif; font-size: 13px; line-height: 1.5; padding: 40px 20px; }
-    .site-wrapper { max-width: 100%; padding: 0 40px; }
-    .logo { font-family: Arial, Helvetica, sans-serif; font-weight: bold; font-size: 26px; color: #000000; text-decoration: none; display: inline-block; }
-    .post-container { max-width: 580px; margin: 60px auto 0 auto; }
-    h1 { font-family: Arial, Helvetica, sans-serif; font-size: 20px; margin-bottom: 5px; }
-    .meta { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #555555; margin-bottom: 20px; }
-    .featured-image { width: 100%; height: auto; margin-bottom: 20px; display: block; }
-    .content { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+    .site-wrapper { max-width: 580px; margin: 0 auto; }
+    .logo { font-family: Arial, Helvetica, sans-serif; font-weight: bold; font-size: 26px; color: #000000; text-decoration: none; display: block; margin-bottom: 25px; }
+    .post-header { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .author-tag { display: inline; margin-right: 6px; background-color: #ffff00; color: #000000; padding: 1px 3px; }
+    .post-title { display: inline; margin-right: 6px; }
+    .post-date { color: #888888; font-weight: normal; }
+    .post-body { display: flex; gap: 15px; align-items: flex-start; margin-top: 15px; }
+    .post-thumb { width: 100px; height: 100px; object-fit: cover; flex-shrink: 0; }
+    .post-text { flex: 1; white-space: pre-wrap; }
   </style>
 </head>
 <body>
   <div class="site-wrapper">
     <a href="../index.html" class="logo">faapd</a>
-    <div class="post-container">
-      <h1>${title}</h1>
-      <div class="meta">By ${author} — ${formattedDate}</div>
-      <img src="${base64ImageData}" alt="${title}" class="featured-image">
-      <div class="content">${text}</div>
-    </div>
+    <article class="post">
+      <div class="post-header">
+        <span class="author-tag">${author}</span>
+        <span class="post-title">${title}</span>
+        <span class="post-date">${exactTimestamp}</span>
+      </div>
+      <div class="post-body">
+        <img src="${base64ImageData}" alt="${title}" class="post-thumb" />
+        <div class="post-text">
+          <p>${text}</p>
+        </div>
+      </div>
+    </article>
   </div>
 </body>
 </html>`;
 
-        // 2. Prepare filename and GitHub API path
         const filename = `${slugify(title)}.html`;
         const repoOwner = "famouspunk4";
         const repoName = "faapd";
         const apiPath = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/posts/${filename}`;
 
-        // 3. Encode full HTML file content into Base64 for the API payload
         const encodedContent = btoa(unescape(encodeURIComponent(postHtmlContent)));
 
         try {
@@ -260,7 +272,6 @@
             statusDiv.style.color = "green";
             statusDiv.textContent = `Success! Post published. Redirecting to homepage...`;
             
-            // Redirects to index.html 1.5 seconds after successful API response
             setTimeout(() => {
               window.location.href = 'index.html';
             }, 1500);
