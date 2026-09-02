@@ -160,6 +160,8 @@
     .post-content-row {
       display: flex !important;
       align-items: flex-start !important;
+      align-content: flex-start !important;
+      justify-content: flex-start !important;
       gap: 15px !important;
       margin-top: 10px !important;
     }
@@ -169,6 +171,7 @@
       height: auto !important;
       flex-shrink: 0 !important;
       display: block !important;
+      align-self: flex-start !important;
     }
 
     .post-text-content {
@@ -177,13 +180,15 @@
       white-space: pre-wrap !important;
       margin: 0 !important;
       padding: 0 !important;
+      align-self: flex-start !important;
     }
 
-    /* Strips default browser top-margin from <p> */
+    /* Force paragraph to top edge without internal offsets */
     .post-text-content p {
       margin: 0 !important;
       padding: 0 !important;
       line-height: 1.2 !important;
+      display: block !important;
     }
   </style>
 </head>
