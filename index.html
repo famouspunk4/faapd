@@ -544,7 +544,7 @@
       const allPosts = [...githubPosts, ...localPosts.slice().reverse(), ...staticPosts];
 
       if (allPosts.length === 0) {
-        if (feedContainer) feedContainer.innerHTML = "<p>No posts found yet.</p>";
+        if (feedContainer) feedContainer.innerHTML = "<p> </p>";
         return;
       }
 
