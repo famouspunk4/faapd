@@ -201,9 +201,10 @@
         <li><a href="about.html">ABOUT</a></li>
       </ul>
 
+      <!-- Author links configured with URL parameters for filtering -->
       <ul class="author-key">
-        <li><a href="franklinabboud.html">Franklin Abboud</a></li>
-        <li><a href="patrickdaughety.html">Patrick Daughety</a></li>
+        <li><a href="index.html?author=FRANKLIN%20ABBOUD">Franklin Abboud</a></li>
+        <li><a href="index.html?author=PATRICK%20DAUGHETY">Patrick Daughety</a></li>
       </ul>
     </aside>
   </div>
@@ -214,56 +215,63 @@
     async function loadFeed() {
       const container = document.getElementById('feed-container');
 
+      // Check URL query parameters for author filtering
+      const urlParams = new URLSearchParams(window.location.search);
+      const selectedAuthor = urlParams.get('author');
+
       const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
       const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
       let allPosts = [...localPosts, ...staticPosts];
 
-      if (allPosts.length > 0) {
-        renderFeed(allPosts);
-        return;
-      }
-
       try {
         const response = await fetch('https://api.github.com/repos/famouspunk4/faapd/contents/posts');
-        if (!response.ok) throw new Error('Unable to fetch posts');
-        
-        const files = await response.json();
-        const htmlFiles = files.filter(f => f.name.endsWith('.html'));
+        if (response.ok) {
+          const files = await response.json();
+          const htmlFiles = files.filter(f => f.name.endsWith('.html'));
 
-        htmlFiles.sort((a, b) => b.name.localeCompare(a.name));
+          htmlFiles.sort((a, b) => b.name.localeCompare(a.name));
 
-        const fetchedPosts = await Promise.all(htmlFiles.map(async (file) => {
-          const res = await fetch(file.download_url);
-          const htmlText = await res.text();
-          
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(htmlText, 'text/html');
+          const fetchedPosts = await Promise.all(htmlFiles.map(async (file) => {
+            const res = await fetch(file.download_url);
+            const htmlText = await res.text();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
 
-          // Extract innerHTML to retain paragraph structures or clean text fallback
-          const textContainer = doc.querySelector('.post-text-content');
-          const extractedText = textContainer ? textContainer.innerHTML.trim() : (doc.querySelector('p')?.innerHTML?.trim() || '');
+            const textContainer = doc.querySelector('.post-text-content');
+            const extractedText = textContainer ? textContainer.innerHTML.trim() : (doc.querySelector('p')?.innerHTML?.trim() || '');
 
-          return {
-            filename: file.name,
-            author: doc.querySelector('.author-tag')?.textContent?.trim() || 'FRANKLIN ABBOUD',
-            title: doc.querySelector('.post-title')?.textContent?.trim() || file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase(),
-            dateStr: doc.querySelector('.post-date')?.textContent?.trim() || '',
-            image: doc.querySelector('.full-post-image, .post-thumb, img')?.getAttribute('src') || '',
-            htmlText: extractedText
-          };
-        }));
+            return {
+              filename: file.name,
+              author: doc.querySelector('.author-tag')?.textContent?.trim() || 'FRANKLIN ABBOUD',
+              title: doc.querySelector('.post-title')?.textContent?.trim() || file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase(),
+              dateStr: doc.querySelector('.post-date')?.textContent?.trim() || '',
+              image: doc.querySelector('.full-post-image, .post-thumb, img')?.getAttribute('src') || '',
+              htmlText: extractedText
+            };
+          }));
 
-        renderFeed(fetchedPosts);
+          allPosts = [...fetchedPosts, ...allPosts];
+        }
       } catch (err) {
-        container.innerHTML = `<p style="font-size:11px; color:#888;">No posts found.</p>`;
+        console.error("Could not fetch remote GitHub posts:", err);
       }
+
+      // Filter post feed by clicked author if parameter is present
+      if (selectedAuthor) {
+        allPosts = allPosts.filter(post => {
+          return post.author && post.author.toUpperCase() === selectedAuthor.toUpperCase();
+        });
+      }
+
+      renderFeed(allPosts);
     }
 
     function renderFeed(posts) {
       const container = document.getElementById('feed-container');
       
       if (!posts || posts.length === 0) {
-        container.innerHTML = `<p style="font-size:11px; color:#888;">No posts available.</p>`;
+        container.innerHTML = `<p style="font-size:11px; color:#888;">No posts found.</p>`;
         return;
       }
 
@@ -275,7 +283,7 @@
         return `
           <article class="feed-item">
             <div class="post-header">
-              <span class="author-tag">${post.author}</span>
+              <a href="index.html?author=${encodeURIComponent(post.author)}" class="author-tag">${post.author}</a>
               <span class="post-title"><a href="${targetUrl}">${post.title}</a></span>
               <span class="post-date">${post.dateStr || post.date || ''}</span>
             </div>
