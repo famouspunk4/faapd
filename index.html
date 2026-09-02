@@ -464,25 +464,46 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
 
-        const author = doc.querySelector('.author-tag')?.textContent?.trim() || "FAAPD";
-        const title = doc.querySelector('.post-title, h1')?.textContent?.trim() || file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase();
-        
-        let dateStr = doc.querySelector('.post-date, .meta')?.textContent?.trim() || '';
-        if (dateStr) {
-          dateStr = dateStr.replace(/^By\s+[^—]+—\s*/i, '');
+        // 1. Extract Author
+        let author = doc.querySelector('.author-tag')?.textContent?.trim();
+        if (!author) {
+          const metaMatch = doc.body.textContent.match(/By\s+([^—\n]+)\s*—/i);
+          author = metaMatch ? metaMatch[1].trim() : "FRANKLIN ABBOUD";
         }
 
-        const imageSrc = doc.querySelector('img')?.getAttribute('src') || '';
-        
-        let bodyText = doc.querySelector('.post-text p, .content p, p')?.textContent?.trim() || '';
-        if (!bodyText) {
-          bodyText = doc.querySelector('.post-text, .content, body')?.textContent?.trim() || '';
+        // 2. Extract Title
+        let title = doc.querySelector('.post-title, h1')?.textContent?.trim();
+        if (!title || title.toLowerCase() === 'faapd') {
+          title = file.name.replace('.html', '').replace(/-/g, ' ');
         }
+
+        // 3. Extract Timestamp
+        let dateStr = doc.querySelector('.post-date')?.textContent?.trim();
+        if (!dateStr) {
+          const timeMatch = doc.body.textContent.match(/\d{2}\.\d{2}\.\d{2}\s*@\s*\d{2}:\d{2}:\d{2}/);
+          dateStr = timeMatch ? timeMatch[0] : '';
+        }
+
+        // 4. Extract Thumbnail Image
+        const imageSrc = doc.querySelector('.post-thumb, .featured-image, img:not(.logo img)')?.getAttribute('src') || '';
+
+        // 5. Clean & Extract ONLY Body Text (strip out duplicate header/logo/meta elements)
+        let bodyParagraphs = Array.from(doc.querySelectorAll('.post-text p, .content p, article p, body p'))
+          .map(p => p.textContent.trim())
+          .filter(text => {
+            if (!text) return false;
+            const lower = text.toLowerCase();
+            if (lower === 'faapd' || lower === title.toLowerCase()) return false;
+            if (/^by\s+.*—/i.test(text)) return false;
+            return true;
+          });
+
+        let bodyText = bodyParagraphs.join('\n\n');
 
         return {
           id: file.name,
-          title: title,
-          author: author,
+          title: title.toUpperCase(),
+          author: author.toUpperCase(),
           dateStr: dateStr,
           image: imageSrc,
           text: bodyText,
@@ -531,7 +552,7 @@
 
       allPosts.forEach(post => {
         let fullTimestamp = post.dateStr || '';
-        if (!fullTimestamp || fullTimestamp.includes('Invalid')) {
+        if (!fullTimestamp || fullTimestamp.includes('Invalid') || !fullTimestamp.includes('@')) {
           fullTimestamp = formatExactTimestamp(post.date || new Date());
         }
 
