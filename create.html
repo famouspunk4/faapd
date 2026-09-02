@@ -21,13 +21,13 @@
       padding: 40px 20px;
     }
 
-    /* Outer wrapper identical to index.html */
+    /* Outer wrapper identical to index.html and post.html */
     .site-wrapper {
       max-width: 100%;
       padding: 0 40px;
     }
 
-    /* Logo positioned identically to index.html */
+    /* Logo positioned identically to index.html and post.html */
     .logo {
       font-family: Arial, Helvetica, sans-serif;
       font-weight: bold;
@@ -100,7 +100,7 @@
 <body>
 
   <div class="site-wrapper">
-    <!-- Logo placed in the exact top-left position -->
+    <!-- Logo placed in top-left position -->
     <a href="index.html" class="logo">faapd</a>
 
     <!-- Centered Form -->
@@ -205,7 +205,7 @@
         const base64ImageData = event.target.result;
         const exactTimestamp = getExactFormattedTimestamp();
 
-        // Exact clean HTML layout for individual post files
+        // Generates full post structure matching post.html
         const postHtmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -215,33 +215,52 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: #ffffff; color: #000000; font-family: Georgia, "Times New Roman", Times, serif; font-size: 13px; line-height: 1.5; padding: 40px 20px; }
-    .site-wrapper { max-width: 580px; margin: 0 auto; }
+    .site-wrapper { max-width: 100%; display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; padding: 0 40px; }
+    .content-left { max-width: 580px; width: 100%; }
     .logo { font-family: Arial, Helvetica, sans-serif; font-weight: bold; font-size: 26px; color: #000000; text-decoration: none; display: block; margin-bottom: 25px; }
-    .post-header { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .author-tag { display: inline; margin-right: 6px; background-color: #ffff00; color: #000000; padding: 1px 3px; }
-    .post-title { display: inline; margin-right: 6px; }
-    .post-date { color: #888888; font-weight: normal; }
-    .post-body { display: flex; gap: 15px; align-items: flex-start; margin-top: 15px; }
-    .post-thumb { width: 100px; height: 100px; object-fit: cover; flex-shrink: 0; }
-    .post-text { flex: 1; white-space: pre-wrap; }
+    aside { width: 140px; flex-shrink: 0; font-family: Arial, Helvetica, sans-serif; font-size: 11px; margin-top: 250px; margin-right: 60px; }
+    .nav-list { list-style: none; margin-bottom: 30px; padding: 0; }
+    .nav-list li { margin-bottom: 6px; }
+    .nav-list a { color: #000000; text-decoration: underline; }
+    .nav-list a:hover { background-color: #ffff00; }
+    .author-key { font-size: 10px; color: #555555; list-style: none; padding: 0; margin: 0; }
+    .author-key li { margin-bottom: 6px; list-style: none; }
+    .author-key a { color: #000000; text-decoration: none; }
+    .author-key a:hover { text-decoration: underline; background-color: transparent; }
+    .single-post { margin-bottom: 30px; }
+    .post-header { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; flex-wrap: wrap; }
+    .author-tag { display: inline; margin-right: 6px; background-color: #ffff00; color: #000000; text-decoration: none; padding: 2px 4px; font-weight: bold; text-transform: uppercase; }
+    .post-title { display: inline; margin-right: 6px; text-transform: uppercase; font-weight: bold; }
+    .post-date { color: #888888; font-weight: normal; font-size: 11px; }
+    .full-post-image { width: 100%; height: auto; max-width: 100%; display: block; margin: 15px 0; }
+    .post-text-content { font-size: 13px; line-height: 1.6; margin-bottom: 30px; white-space: pre-wrap; }
   </style>
 </head>
 <body>
   <div class="site-wrapper">
-    <a href="../index.html" class="logo">faapd</a>
-    <article class="post">
-      <div class="post-header">
-        <span class="author-tag">${author}</span>
-        <span class="post-title">${title}</span>
-        <span class="post-date">${exactTimestamp}</span>
-      </div>
-      <div class="post-body">
-        <img src="${base64ImageData}" alt="${title}" class="post-thumb" />
-        <div class="post-text">
+    <div class="content-left">
+      <a href="../index.html" class="logo">faapd</a>
+      <article class="single-post">
+        <div class="post-header">
+          <span class="author-tag">${author}</span>
+          <span class="post-title">${title}</span>
+          <span class="post-date">${exactTimestamp}</span>
+        </div>
+        <img src="${base64ImageData}" alt="${title}" class="full-post-image">
+        <div class="post-text-content">
           <p>${text}</p>
         </div>
-      </div>
-    </article>
+      </article>
+    </div>
+    <aside>
+      <ul class="nav-list">
+        <li><a href="../about.html">ABOUT</a></li>
+      </ul>
+      <ul class="author-key">
+        <li><a href="../franklinabboud.html">Franklin Abboud</a></li>
+        <li><a href="../patrickdaughety.html">Patrick Daughety</a></li>
+      </ul>
+    </aside>
   </div>
 </body>
 </html>`;
