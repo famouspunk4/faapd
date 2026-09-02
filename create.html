@@ -21,13 +21,11 @@
       padding: 40px 20px;
     }
 
-    /* Outer wrapper identical to index.html and post.html */
     .site-wrapper {
       max-width: 100%;
       padding: 0 40px;
     }
 
-    /* Logo positioned identically to index.html and post.html */
     .logo {
       font-family: Arial, Helvetica, sans-serif;
       font-weight: bold;
@@ -37,13 +35,11 @@
       display: inline-block;
     }
 
-    /* Centered form container pulled up level with top layout */
     .form-container {
       max-width: 580px;
       margin: 60px auto 0 auto;
     }
 
-    /* Form Styles */
     .form-group {
       margin-bottom: 15px;
       font-family: Arial, Helvetica, sans-serif;
@@ -100,10 +96,8 @@
 <body>
 
   <div class="site-wrapper">
-    <!-- Logo placed in top-left position -->
     <a href="index.html" class="logo">faapd</a>
 
-    <!-- Centered Form -->
     <div class="form-container">
       <form id="post-form">
         <div class="form-group">
@@ -139,7 +133,6 @@
   </div>
 
   <script>
-    // Load saved token from localStorage if available
     document.addEventListener('DOMContentLoaded', () => {
       const savedToken = localStorage.getItem('gh_token');
       if (savedToken) {
@@ -147,18 +140,16 @@
       }
     });
 
-    // Helper function to turn strings into clean URL filenames
     function slugify(text) {
       return text
         .toString()
         .toLowerCase()
         .trim()
-        .replace(/\s+/g, '-')        // Replace spaces with -
-        .replace(/[^\w\-]+/g, '')    // Remove non-word characters
-        .replace(/\-\-+/g, '-');      // Replace multiple - with single -
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-');
     }
 
-    // Helper function to format timestamp as MM.DD.YY @ HH:MM:SS AM/PM
     function getExactFormattedTimestamp() {
       const now = new Date();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -168,7 +159,7 @@
       let hours = now.getHours();
       const ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12;
-      hours = hours ? hours : 12; // Convert '0' to '12'
+      hours = hours ? hours : 12;
       const hh = String(hours).padStart(2, '0');
       
       const min = String(now.getMinutes()).padStart(2, '0');
@@ -177,7 +168,6 @@
       return `${mm}.${dd}.${yy} @ ${hh}:${min}:${ss} ${ampm}`;
     }
 
-    // Helper function to generate ISO timestamp prefix for sorting (YYYY-MM-DD-HHMMSS)
     function getIsoTimestamp() {
       const now = new Date();
       const yyyy = now.getFullYear();
@@ -224,7 +214,6 @@
         const base64ImageData = event.target.result;
         const exactTimestamp = getExactFormattedTimestamp();
 
-        // Generates full post structure matching updated layout
         const postHtmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -248,20 +237,13 @@
     .author-key a:hover { text-decoration: underline; background-color: transparent; }
     .single-post { margin-bottom: 30px; }
     .post-header { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; flex-wrap: wrap; }
-    
-    /* Tight highlight style */
     .author-tag { display: inline-block; margin-right: 6px; background-color: #ffff00; color: #000000; text-decoration: none; padding: 0 2px; line-height: 1.1; font-weight: bold; text-transform: uppercase; }
     .post-title { display: inline; margin-right: 6px; text-transform: uppercase; font-weight: bold; }
     .post-date { color: #888888; font-weight: normal; font-size: 11px; }
-    
-    /* Top-aligned side-by-side flex container */
-   .post-content-row { display: flex !important; align-items: flex-start !important; align-content: flex-start !important; justify-content: flex-start !important; gap: 15px !important; margin-top: 10px !important; }
-    .post-thumb { width: 120px !important; height: auto !important; flex-shrink: 0 !important; display: block !important; align-self: flex-start !important; }
+    .post-content-row { display: flex !important; align-items: flex-start !important; justify-content: flex-start !important; gap: 15px !important; margin-top: 10px !important; }
+    .post-thumb { width: 120px !important; height: auto !important; flex-shrink: 0 !important; display: block !important; align-self: flex-start !important; margin: 0 !important; }
     .post-text-content { font-size: 13px !important; line-height: 1.2 !important; flex-grow: 1 !important; margin: 0 !important; padding: 0 !important; white-space: pre-wrap !important; align-self: flex-start !important; }
-    .post-text-content p { margin: 0 !important; padding: 0 !important; display: block !important; }
-    
-    /* Remove default paragraph margins to align text precisely at top edge */
-    .post-text-content p { margin: 0 !important; padding: 0 !important; }
+    .post-text-content p { margin: 0 !important; padding: 0 !important; line-height: 1.2 !important; display: block !important; }
   </style>
 </head>
 <body>
@@ -274,10 +256,10 @@
           <span class="post-title">${title}</span>
           <span class="post-date">${exactTimestamp}</span>
         </div>
-        <div class="post-content-row">
-          <img src="${base64ImageData}" alt="${title}" class="post-thumb">
-          <div class="post-text-content">
-            <p>${text}</p>
+        <div class="post-content-row" style="display: flex !important; align-items: flex-start !important; justify-content: flex-start !important; gap: 15px !important; margin-top: 10px !important;">
+          <img src="${base64ImageData}" alt="${title}" class="post-thumb" style="width: 120px !important; height: auto !important; flex-shrink: 0 !important; display: block !important; align-self: flex-start !important; margin: 0 !important;">
+          <div class="post-text-content" style="font-size: 13px !important; line-height: 1.2 !important; flex-grow: 1 !important; margin: 0 !important; padding: 0 !important; align-self: flex-start !important;">
+            <p style="margin: 0 !important; padding: 0 !important; line-height: 1.2 !important; display: block !important;">${text}</p>
           </div>
         </div>
       </article>
@@ -295,7 +277,6 @@
 </body>
 </html>`;
 
-        // Filename prefix ensures files sort chronologically in GitHub
         const filename = `${getIsoTimestamp()}-${slugify(title)}.html`;
         const repoOwner = "famouspunk4";
         const repoName = "faapd";
@@ -320,7 +301,6 @@
 
           if (response.ok) {
             statusDiv.textContent = `Success! Post published. Redirecting to homepage...`;
-            
             setTimeout(() => {
               window.location.href = 'index.html';
             }, 1500);
