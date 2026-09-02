@@ -177,6 +177,18 @@
       return `${mm}.${dd}.${yy} @ ${hh}:${min}:${ss} ${ampm}`;
     }
 
+    // Helper function to generate ISO timestamp prefix for sorting (YYYY-MM-DD-HHMMSS)
+    function getIsoTimestamp() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}-${hh}${min}${ss}`;
+    }
+
     document.getElementById('post-form').addEventListener('submit', async function(e) {
       e.preventDefault();
 
@@ -282,7 +294,8 @@
 </body>
 </html>`;
 
-        const filename = `${slugify(title)}.html`;
+        // Filename prefix ensures files sort chronologically in GitHub
+        const filename = `${getIsoTimestamp()}-${slugify(title)}.html`;
         const repoOwner = "famouspunk4";
         const repoName = "faapd";
         const apiPath = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/posts/${filename}`;
