@@ -397,7 +397,7 @@
     <!-- Left Column: Title + Posts Feed -->
     <div class="content-left">
       <a href="index.html" class="logo">faapd</a>
-      <main id="feed-container"></main>
+      <main id="feed-container">Loading posts...</main>
     </div>
 
     <!-- Right Column: Navigation Directory -->
@@ -502,52 +502,100 @@
     // Secret PIN for author management
     const ADMIN_PIN = "1234";
 
-    // Fetch local posts and merge safely
-    const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
-    const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
-    const allPosts = [...localPosts.slice().reverse(), ...staticPosts];
+    async function loadGitHubPosts() {
+      const repoOwner = "famouspunk4";
+      const repoName = "faapd";
 
-    let fullFeedHtml = '';
+      try {
+        // Fetch files in /posts from GitHub REST API
+        const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/posts`);
+        if (!response.ok) return [];
 
-    allPosts.forEach(post => {
-      const d = new Date(post.date);
+        const files = await response.json();
+        const htmlFiles = files.filter(file => file.name.endsWith('.html'));
 
-      const formattedDate = d.toLocaleDateString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
-        year: '2-digit'
-      }).replace(/\//g, '.');
+        // Map GitHub API files to match the local post object structure
+        return htmlFiles.map(file => {
+          const cleanTitle = file.name.replace('.html', '').replace(/-/g, ' ');
+          return {
+            id: file.name,
+            title: cleanTitle,
+            author: "faapd",
+            date: new Date().toISOString(),
+            image: "", // Placeholder thumbnail
+            text: `<a href="posts/${file.name}">Read full post &rarr;</a>`,
+            url: `posts/${file.name}`
+          };
+        });
+      } catch (err) {
+        console.error("Error fetching GitHub posts:", err);
+        return [];
+      }
+    }
 
-      const formattedTime = d.toLocaleTimeString('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+    async function renderFeed() {
+      // Fetch dynamic posts from GitHub API
+      const githubPosts = await loadGitHubPosts();
+
+      // Fetch local storage posts and static fallback data
+      const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+      const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
+
+      // Merge GitHub posts with existing post arrays
+      const allPosts = [...githubPosts, ...localPosts.slice().reverse(), ...staticPosts];
+
+      if (allPosts.length === 0) {
+        if (feedContainer) feedContainer.innerHTML = "<p>No posts found yet.</p>";
+        return;
+      }
+
+      let fullFeedHtml = '';
+
+      allPosts.forEach(post => {
+        const d = new Date(post.date);
+
+        const formattedDate = d.toLocaleDateString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: '2-digit'
+        }).replace(/\//g, '.');
+
+        const formattedTime = d.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+
+        const fullTimestamp = `${formattedDate} @ ${formattedTime}`;
+        const postLink = post.url || `post.html?id=${post.id}`;
+        const imageTag = post.image ? `<img src="${post.image}" alt="Thumbnail" class="post-thumb" />` : '';
+
+        fullFeedHtml += `
+          <article class="post">
+            <div class="post-header">
+              <span class="author-tag">${post.author}</span>
+              <span class="post-title">
+                <a href="${postLink}">${post.title}</a>
+              </span>
+              <span class="post-date">${fullTimestamp}</span>
+            </div>
+            <div class="post-body">
+              ${imageTag}
+              <div class="post-text">
+                <p>${post.text}</p>
+              </div>
+            </div>
+          </article>
+        `;
       });
 
-      const fullTimestamp = `${formattedDate} @ ${formattedTime}`;
-
-      fullFeedHtml += `
-        <article class="post">
-          <div class="post-header">
-            <span class="author-tag">${post.author}</span>
-            <span class="post-title">
-              <a href="post.html?id=${post.id}">${post.title}</a>
-            </span>
-            <span class="post-date">${fullTimestamp}</span>
-          </div>
-          <div class="post-body">
-            <img src="${post.image}" alt="Thumbnail" class="post-thumb" />
-            <div class="post-text">
-              <p>${post.text}</p>
-            </div>
-          </div>
-        </article>
-      `;
-    });
-
-    if (feedContainer) {
-      feedContainer.innerHTML = fullFeedHtml;
+      if (feedContainer) {
+        feedContainer.innerHTML = fullFeedHtml;
+      }
     }
+
+    // Initialize feed rendering
+    renderFeed();
 
     // Password-protected delete function
     function deletePost(id) {
