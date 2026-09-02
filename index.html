@@ -440,15 +440,18 @@
   <script>
     const feedContainer = document.getElementById('feed-container');
 
-    // Helper: Formats Date object into "MM.DD.YY @ HH:MM:SS"
-    function formatExactTimestamp(dateObj) {
-      if (!dateObj || isNaN(dateObj.getTime())) return '';
-      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const dd = String(dateObj.getDate()).padStart(2, '0');
-      const yy = String(dateObj.getFullYear()).slice(-2);
-      const hh = String(dateObj.getHours()).padStart(2, '0');
-      const min = String(dateObj.getMinutes()).padStart(2, '0');
-      const ss = String(dateObj.getSeconds()).padStart(2, '0');
+    // Formats Date object or string into MM.DD.YY @ HH:MM:SS
+    function formatExactTimestamp(dateInput) {
+      if (!dateInput) return '';
+      const d = new Date(dateInput);
+      if (isNaN(d.getTime())) return dateInput;
+
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const yy = String(d.getFullYear()).slice(-2);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      const ss = String(d.getSeconds()).padStart(2, '0');
       return `${mm}.${dd}.${yy} @ ${hh}:${min}:${ss}`;
     }
 
@@ -461,11 +464,20 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
 
-        const title = doc.querySelector('.post-title, h1')?.textContent || file.name.replace('.html', '').replace(/-/g, ' ');
-        const author = doc.querySelector('.author-tag')?.textContent || "faapd";
-        const dateStr = doc.querySelector('.post-date, .meta')?.textContent || formatExactTimestamp(new Date());
-        const imageSrc = doc.querySelector('.post-thumb, .featured-image')?.getAttribute('src') || '';
-        const bodyText = doc.querySelector('.post-text, .content')?.textContent || '';
+        const author = doc.querySelector('.author-tag')?.textContent?.trim() || "FAAPD";
+        const title = doc.querySelector('.post-title, h1')?.textContent?.trim() || file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase();
+        
+        let dateStr = doc.querySelector('.post-date, .meta')?.textContent?.trim() || '';
+        if (dateStr) {
+          dateStr = dateStr.replace(/^By\s+[^—]+—\s*/i, '');
+        }
+
+        const imageSrc = doc.querySelector('img')?.getAttribute('src') || '';
+        
+        let bodyText = doc.querySelector('.post-text p, .content p, p')?.textContent?.trim() || '';
+        if (!bodyText) {
+          bodyText = doc.querySelector('.post-text, .content, body')?.textContent?.trim() || '';
+        }
 
         return {
           id: file.name,
@@ -519,11 +531,11 @@
 
       allPosts.forEach(post => {
         let fullTimestamp = post.dateStr || '';
-        if (!fullTimestamp && post.date) {
-          fullTimestamp = formatExactTimestamp(new Date(post.date));
+        if (!fullTimestamp || fullTimestamp.includes('Invalid')) {
+          fullTimestamp = formatExactTimestamp(post.date || new Date());
         }
 
-        const postLink = post.url || `post.html?id=${post.id}`;
+        const postLink = post.url || `posts/${post.id}`;
         const imageTag = post.image ? `<img src="${post.image}" alt="Thumbnail" class="post-thumb" />` : '';
 
         fullFeedHtml += `
