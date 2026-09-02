@@ -152,6 +152,7 @@
       font-size: 11px;
     }
 
+    /* Row forces strict top alignment */
     .post-content-row {
       display: flex !important;
       align-items: flex-start !important;
@@ -171,18 +172,18 @@
 
     .post-text-content {
       font-size: 13px !important;
-      line-height: 1.2 !important;
+      line-height: 1.3 !important;
       flex-grow: 1 !important;
-      white-space: pre-wrap !important;
       margin: 0 !important;
       padding: 0 !important;
       align-self: flex-start !important;
+      white-space: pre-wrap !important;
     }
 
     .post-text-content p {
       margin: 0 !important;
       padding: 0 !important;
-      line-height: 1.2 !important;
+      line-height: 1.3 !important;
       display: block !important;
     }
   </style>
@@ -238,13 +239,17 @@
           const parser = new DOMParser();
           const doc = parser.parseFromString(htmlText, 'text/html');
 
+          // Extract innerHTML to retain paragraph structures or clean text fallback
+          const textContainer = doc.querySelector('.post-text-content');
+          const extractedText = textContainer ? textContainer.innerHTML.trim() : (doc.querySelector('p')?.innerHTML?.trim() || '');
+
           return {
             filename: file.name,
             author: doc.querySelector('.author-tag')?.textContent?.trim() || 'FRANKLIN ABBOUD',
             title: doc.querySelector('.post-title')?.textContent?.trim() || file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase(),
             dateStr: doc.querySelector('.post-date')?.textContent?.trim() || '',
             image: doc.querySelector('.full-post-image, .post-thumb, img')?.getAttribute('src') || '',
-            text: doc.querySelector('.post-text-content, .post-text, p')?.textContent?.trim() || ''
+            htmlText: extractedText
           };
         }));
 
@@ -264,7 +269,8 @@
 
       container.innerHTML = posts.map(post => {
         const targetUrl = post.filename ? `post.html?file=${post.filename}` : `post.html?id=${post.id}`;
-        const imageTag = post.image ? `<img src="${post.image}" alt="${post.title}" class="post-thumb" style="width:120px !important; height:auto !important; flex-shrink:0 !important; display:block !important; align-self:flex-start !important; margin:0 !important;">` : '';
+        const imageTag = post.image ? `<img src="${post.image}" alt="${post.title}" class="post-thumb" style="width:120px; height:auto; display:block; align-self:flex-start; margin:0; flex-shrink:0;">` : '';
+        const bodyContent = post.htmlText || `<p>${post.text || ''}</p>`;
 
         return `
           <article class="feed-item">
@@ -273,10 +279,10 @@
               <span class="post-title"><a href="${targetUrl}">${post.title}</a></span>
               <span class="post-date">${post.dateStr || post.date || ''}</span>
             </div>
-            <div class="post-content-row" style="display:flex !important; align-items:flex-start !important; justify-content:flex-start !important; gap:15px !important; margin-top:10px !important;">
+            <div class="post-content-row" style="display:flex; align-items:flex-start; justify-content:flex-start; gap:15px; margin-top:10px;">
               ${imageTag}
-              <div class="post-text-content" style="font-size:13px !important; line-height:1.2 !important; flex-grow:1 !important; align-self:flex-start !important; margin:0 !important; padding:0 !important; white-space:pre-wrap !important;">
-                <p style="margin:0 !important; padding:0 !important; line-height:1.2 !important; display:block !important;">${post.text}</p>
+              <div class="post-text-content" style="font-size:13px; line-height:1.3; flex-grow:1; align-self:flex-start; margin:0; padding:0; white-space:pre-wrap;">
+                ${bodyContent}
               </div>
             </div>
           </article>
