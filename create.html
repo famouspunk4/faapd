@@ -118,12 +118,12 @@ select option {
         </div>
 
         <div class="form-group">
-          <label for="author">Author</label>
-          <select id="author" required>
-            <option value="" disabled selected hidden>None</option>
-            <option value="Franklin Abboud">Franklin Abboud</option>
-            <option value="Patrick Daughety">Patrick Daughety</option>
-          </select>
+  <label for="author">Author</label>
+  <input type="text" id="author" list="author-list" placeholder="None" required>
+  <datalist id="author-list">
+    <option value="Franklin Abboud">
+    <option value="Patrick Daughety">
+  </datalist>
         </div>
 
         <div class="form-group">
