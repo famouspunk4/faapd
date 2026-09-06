@@ -44,6 +44,7 @@
     .form-group {
       margin-bottom: 15px;
       font-family: Arial, Helvetica, sans-serif;
+      position: relative;
     }
 
     label {
@@ -67,9 +68,60 @@
       color: #000000;
     }
 
+    /* Style placeholder grey */
     input::placeholder {
       color: #888888;
       opacity: 1;
+    }
+
+    /* Custom Dropdown Styling */
+    .dropdown-container {
+      position: relative;
+      width: 100%;
+    }
+
+    .dropdown-container input[type="text"] {
+      padding-right: 25px; /* Space for arrow */
+    }
+
+    /* Standard Select Dropdown Arrow Icon */
+    .dropdown-arrow {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid #000000;
+    }
+
+    .dropdown-list {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-top: none;
+      z-index: 100;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .dropdown-list li {
+      padding: 8px;
+      font-size: 12px;
+      font-family: Arial, sans-serif;
+      cursor: pointer;
+    }
+
+    .dropdown-list li:hover {
+      background-color: #f0f0f0;
     }
 
     input[type="file"]::file-selector-button {
@@ -113,11 +165,14 @@
 
         <div class="form-group">
           <label for="author">Author</label>
-          <input type="text" id="author" list="author-list" placeholder="None" required autocomplete="off">
-          <datalist id="author-list">
-            <option value="Franklin Abboud">
-            <option value="Patrick Daughety">
-          </datalist>
+          <div class="dropdown-container">
+            <input type="text" id="author" placeholder="None" required autocomplete="off">
+            <span class="dropdown-arrow"></span>
+            <ul class="dropdown-list" id="author-dropdown">
+              <li>Franklin Abboud</li>
+              <li>Patrick Daughety</li>
+            </ul>
+          </div>
         </div>
 
         <div class="form-group">
@@ -143,6 +198,29 @@
   </div>
 
   <script>
+    const authorInput = document.getElementById('author');
+    const authorDropdown = document.getElementById('author-dropdown');
+
+    // Show dropdown when clicking or focusing into input
+    authorInput.addEventListener('focus', () => {
+      authorDropdown.style.display = 'block';
+    });
+
+    // Hide dropdown if user clicks outside of the author field
+    document.addEventListener('click', (e) => {
+      if (!authorInput.contains(e.target) && !authorDropdown.contains(e.target)) {
+        authorDropdown.style.display = 'none';
+      }
+    });
+
+    // Fill input when an option from the dropdown menu is selected
+    authorDropdown.querySelectorAll('li').forEach(item => {
+      item.addEventListener('click', () => {
+        authorInput.value = item.textContent;
+        authorDropdown.style.display = 'none';
+      });
+    });
+
     function slugify(text) {
       return text
         .toString()
@@ -190,7 +268,7 @@
       let rawToken = document.getElementById('github-token').value;
       const token = rawToken.replace(/[^\x20-\x7E]/g, "").trim();
 
-      const author = document.getElementById('author').value.trim().toUpperCase();
+      const author = authorInput.value.trim().toUpperCase();
       const title = document.getElementById('title').value.trim().toUpperCase();
       const text = document.getElementById('text').value.trim();
       const fileInput = document.getElementById('image-file');
