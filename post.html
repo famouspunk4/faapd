@@ -47,7 +47,7 @@
       margin-bottom: 25px;
     }
 
-     /* Right Section: Navigation Directory */
+    /* Right Section: Navigation Directory */
     aside {
       width: 140px;
       flex-shrink: 0;
@@ -106,7 +106,7 @@
       font-family: Arial, Helvetica, sans-serif;
       font-size: 11px;
       font-weight: bold;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: flex;
@@ -160,8 +160,8 @@
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      margin: 15px 0;
+      gap: 10px;
+      margin: 8px 0 15px 0;
     }
 
     .full-post-image {
@@ -173,9 +173,16 @@
 
     .post-text-content {
       font-size: 13px;
-      line-height: 1.6;
+      line-height: 1.5;
+      margin-top: 15px;
       margin-bottom: 30px;
       white-space: pre-wrap;
+    }
+
+    .post-text-content p {
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1.5 !important;
     }
 
     /* Comments Section */
@@ -251,6 +258,29 @@
       font-size: 11px;
       cursor: pointer;
       text-transform: uppercase;
+    }
+
+    /* Mobile Responsiveness Rules */
+    @media (max-width: 768px) {
+      body {
+        padding: 20px 15px;
+      }
+
+      .site-wrapper {
+        flex-direction: column;
+        padding: 0;
+        gap: 30px;
+      }
+
+      .content-left {
+        max-width: 100%;
+      }
+
+      aside {
+        width: 100%;
+        margin-top: 20px;
+        margin-right: 0;
+      }
     }
   </style>
 </head>
@@ -332,7 +362,11 @@
           const imgElements = doc.querySelectorAll('.post-images-column img, .full-post-image, .post-thumb, img');
           const images = Array.from(imgElements).map(img => img.getAttribute('src')).filter(Boolean);
 
-          const bodyText = doc.querySelector('.post-text-content, .post-text, p')?.textContent?.trim() || '';
+          const textContainer = doc.querySelector('.post-text-content, .post-text');
+          let bodyText = textContainer ? textContainer.innerHTML.trim() : (doc.querySelector('p')?.innerHTML?.trim() || '');
+          
+          // Clean up leading/trailing paragraph tags from external HTML files
+          bodyText = bodyText.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '').trim();
 
           renderSinglePost({
             author: author,
@@ -352,7 +386,8 @@
     function renderSinglePost(p) {
       const imagesList = p.images || [];
       const imagesHtml = imagesList.map(src => `<img src="${src}" alt="${p.title}" class="full-post-image">`).join('');
-      
+      const bodyContent = p.text || '';
+
       document.getElementById('post-content').innerHTML = `
         <article class="single-post">
           <div class="post-header">
@@ -361,9 +396,7 @@
             <span class="post-date">${p.dateStr || ''}</span>
           </div>
           ${imagesList.length > 0 ? `<div class="post-images-container">${imagesHtml}</div>` : ''}
-          <div class="post-text-content">
-            <p>${p.text}</p>
-          </div>
+          ${bodyContent ? `<div class="post-text-content">${bodyContent}</div>` : ''}
         </article>
       `;
     }
