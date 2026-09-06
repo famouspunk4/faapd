@@ -155,18 +155,18 @@
       text-decoration: underline;
     }
 
-    .post-images-column {
-      flex-shrink: 0;
+    .post-images-container {
+      width: 100%;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 15px;
+      gap: 15px;
+      margin: 15px 0;
     }
 
     .full-post-image {
-      width: 120px;
+      width: 100%;
       height: auto;
+      max-width: 100%;
       display: block;
     }
 
@@ -359,13 +359,9 @@
             <span class="post-title">${p.title}</span>
             <span class="post-date">${p.dateStr || ''}</span>
           </div>
-          <div class="post-content-row" style="display: flex; align-items: flex-start; gap: 15px; margin-top: 10px;">
-            <div class="post-images-column">
-              ${imagesHtml}
-            </div>
-            <div class="post-text-content" style="flex-grow: 1;">
-              <p>${p.text}</p>
-            </div>
+          ${imagesList.length > 0 ? `<div class="post-images-container">${imagesHtml}</div>` : ''}
+          <div class="post-text-content">
+            <p>${p.text}</p>
           </div>
         </article>
       `;
