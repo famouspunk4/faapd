@@ -395,20 +395,9 @@
 
     function getExactFormattedTimestamp() {
       const now = new Date();
-      const mm = String(now.getUTCMonth() + 1).padStart(2, '0');
-      const dd = String(now.getUTCDate()).padStart(2, '0');
-      const yy = String(now.getUTCFullYear()).slice(-2);
-      
-      let hours = now.getUTCHours();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const hh = String(hours).padStart(2, '0');
-      
-      const min = String(now.getUTCMinutes()).padStart(2, '0');
-      const ss = String(now.getUTCSeconds()).padStart(2, '0');
-      
-      return `${mm}.${dd}.${yy} @ ${hh}:${min}:${ss} ${ampm} UTC`;
+      const date = now.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
+      const time = now.toLocaleTimeString('en-GB', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return `${date} @ ${time} UTC`;
     }
 
     function getIsoTimestamp() {
