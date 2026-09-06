@@ -91,6 +91,7 @@
       font-weight: bold;
       text-decoration: none;
       margin-left: 6px;
+      text-transform: uppercase;
     }
 
     .post-title a:hover {
@@ -111,10 +112,39 @@
       width: 120px;
       height: 120px;
       object-fit: cover;
+      flex-shrink: 0;
     }
 
     .post-text {
       flex: 1;
+    }
+
+    /* Mobile Responsiveness Rules */
+    @media (max-width: 768px) {
+      body {
+        padding: 20px 15px;
+      }
+
+      .site-wrapper {
+        flex-direction: column;
+        padding: 0;
+        gap: 30px;
+      }
+
+      .content-left {
+        max-width: 100%;
+      }
+
+      .post-body {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .post-thumb {
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+      }
     }
   </style>
 </head>
