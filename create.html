@@ -56,7 +56,6 @@
 
     input[type="text"],
     input[type="password"],
-    select,
     textarea,
     input[type="file"] {
       width: 100%;
@@ -66,7 +65,11 @@
       font-family: Arial, sans-serif;
       background-color: #ffffff;
       color: #000000;
-      border-radius: 0;
+    }
+
+    input::placeholder {
+      color: #888888;
+      opacity: 1;
     }
 
     input[type="file"]::file-selector-button {
@@ -94,20 +97,6 @@
       font-size: 12px;
       font-weight: bold;
     }
-    /* Placeholder state (greyed out) */
-select:invalid {
-  color: #888888;
-}
-
-/* Options inside the dropdown menu (black text) */
-select option {
-  color: #000000;
-}
-    /* Customizes the placeholder color */
-input::placeholder {
-  color: #888888;
-  opacity: 1; /* Ensures full opacity in Firefox */
-}
   </style>
 </head>
 <body>
@@ -123,12 +112,12 @@ input::placeholder {
         </div>
 
         <div class="form-group">
- <label for="author">Author</label>
-  <input type="text" id="author" list="author-list" placeholder="None" required autocomplete="off">
-  <datalist id="author-list">
-    <option value="Franklin Abboud"></option>
-    <option value="Patrick Daughety"></option>
-  </datalist>
+          <label for="author">Author</label>
+          <input type="text" id="author" list="author-list" placeholder="None" required autocomplete="off">
+          <datalist id="author-list">
+            <option value="Franklin Abboud">
+            <option value="Patrick Daughety">
+          </datalist>
         </div>
 
         <div class="form-group">
