@@ -155,12 +155,19 @@
       text-decoration: underline;
     }
 
+    .post-images-column {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
     .full-post-image {
-      width: 100%;
+      width: 120px;
       height: auto;
-      max-width: 100%;
       display: block;
-      margin: 15px 0;
     }
 
     .post-text-content {
@@ -296,11 +303,17 @@
       let foundPost = [...localPosts, ...staticPosts].find(p => p.id == postId || p.url === `posts/${postFile}`);
 
       if (foundPost) {
-        renderSinglePost(foundPost);
+        renderSinglePost({
+          author: foundPost.author,
+          title: foundPost.title,
+          dateStr: foundPost.dateStr,
+          images: Array.isArray(foundPost.images) ? foundPost.images : (foundPost.image ? [foundPost.image] : []),
+          text: foundPost.text
+        });
         return;
       }
 
-      // 2. Otherwise fetch raw file from GitHub /posts/ directory
+      // 2. Fetch raw file from GitHub /posts/ directory
       if (postFile) {
         try {
           const res = await fetch(`posts/${postFile}`);
@@ -313,14 +326,18 @@
           const author = doc.querySelector('.author-tag')?.textContent?.trim() || "FRANKLIN ABBOUD";
           const title = doc.querySelector('.post-title')?.textContent?.trim() || postFile.replace('.html', '').replace(/-/g, ' ').toUpperCase();
           const timestamp = doc.querySelector('.post-date')?.textContent?.trim() || '';
-          const imageSrc = doc.querySelector('.full-post-image, .post-thumb, img')?.getAttribute('src') || '';
+          
+          // Extract ALL img elements from the post file
+          const imgElements = doc.querySelectorAll('.post-images-column img, .full-post-image, .post-thumb, img');
+          const images = Array.from(imgElements).map(img => img.getAttribute('src')).filter(Boolean);
+
           const bodyText = doc.querySelector('.post-text-content, .post-text, p')?.textContent?.trim() || '';
 
           renderSinglePost({
             author: author,
             title: title,
             dateStr: timestamp,
-            image: imageSrc,
+            images: images,
             text: bodyText
           });
         } catch (e) {
@@ -332,7 +349,8 @@
     }
 
     function renderSinglePost(p) {
-      const imageTag = p.image ? `<img src="${p.image}" alt="${p.title}" class="full-post-image">` : '';
+      const imagesList = p.images || [];
+      const imagesHtml = imagesList.map(src => `<img src="${src}" alt="${p.title}" class="full-post-image">`).join('');
       
       document.getElementById('post-content').innerHTML = `
         <article class="single-post">
@@ -341,9 +359,13 @@
             <span class="post-title">${p.title}</span>
             <span class="post-date">${p.dateStr || ''}</span>
           </div>
-          ${imageTag}
-          <div class="post-text-content">
-            <p>${p.text}</p>
+          <div class="post-content-row" style="display: flex; align-items: flex-start; gap: 15px; margin-top: 10px;">
+            <div class="post-images-column">
+              ${imagesHtml}
+            </div>
+            <div class="post-text-content" style="flex-grow: 1;">
+              <p>${p.text}</p>
+            </div>
           </div>
         </article>
       `;
