@@ -91,12 +91,12 @@
       margin-left: 10px;
       color: #000000;
       font-weight: bold;
-      text-transform: uppercase; /* Converts title text to ALL CAPS */
-      text-decoration: none;      /* Removes default underline */
+      text-transform: uppercase;
+      text-decoration: none;
     }
 
     .post-title a:hover {
-      text-decoration: underline; /* Adds underline when hovering */
+      text-decoration: underline;
     }
 
     .post-date {
@@ -113,10 +113,39 @@
       width: 120px;
       height: 120px;
       object-fit: cover;
+      flex-shrink: 0;
     }
 
     .post-text {
       flex: 1;
+    }
+
+    /* Mobile Responsiveness Rules */
+    @media (max-width: 768px) {
+      body {
+        padding: 20px 15px;
+      }
+
+      .site-wrapper {
+        flex-direction: column;
+        padding: 0;
+        gap: 30px;
+      }
+
+      .content-left {
+        max-width: 100%;
+      }
+
+      .post-body {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .post-thumb {
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+      }
     }
   </style>
 </head>
