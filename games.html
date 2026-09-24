@@ -7,66 +7,29 @@
   <title>faapd - Games</title>
 
   <style>
-    /* Specific styles for the Games page content */
-    .page-title {
-      font-family: Arial, Helvetica, sans-serif;
-      font-weight: bold;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 15px;
-    }
-
-    .games-intro {
-      font-family: Georgia, "Times New Roman", Times, serif;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #000000;
-      margin-bottom: 25px;
-    }
-
-    .games-list {
+    /* Specific styles for the Games thumbnail grid */
+    .games-grid {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
       gap: 20px;
     }
 
     .game-card {
-      border: 1px solid #eeeeee;
-      padding: 15px;
-      background-color: #fafafa;
+      display: block;
+      width: 280px;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
     }
 
-    .game-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
+    .game-card:hover {
+      opacity: 0.85;
     }
 
-    .game-title {
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .game-status {
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 10px;
-      font-weight: bold;
-      text-transform: uppercase;
-      padding: 2px 6px;
-      background-color: #ffff00;
-      color: #000000;
-    }
-
-    .game-description {
-      font-family: Georgia, "Times New Roman", Times, serif;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #333333;
+    .game-thumb {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px dashed #000000;
     }
 
     /* Account Modal Styles */
@@ -132,36 +95,16 @@
 </head>
 <body>
 
-  <!-- Container where layout.html will load -->
+  <!-- Layout Container -->
   <div id="layout-container"></div>
 
-  <!-- Hidden template for the Games page content -->
+  <!-- Content Template for Games -->
   <template id="games-content">
-    <div class="page-title">UPCOMING GAMES</div>
-    <div class="games-intro">
-      <p>A directory of web games and interactive projects in development for full release on the site.</p>
-    </div>
-
-    <div class="games-list">
-      <div class="game-card">
-        <div class="game-header">
-          <span class="game-title">Project Alpha</span>
-          <span class="game-status">In Development</span>
-        </div>
-        <div class="game-description">
-          An interactive browser-based experience currently being built and tested.
-        </div>
-      </div>
-
-      <div class="game-card">
-        <div class="game-header">
-          <span class="game-title">Project Beta</span>
-          <span class="game-status">Planned</span>
-        </div>
-        <div class="game-description">
-          An upcoming arcade/strategy web mini-game scheduled for upload.
-        </div>
-      </div>
+    <div class="games-grid">
+      <!-- Game Card 1 -->
+      <a href="#" class="game-card">
+        <img src="zonbi-killaz.jpg" alt="ZONBI KILLAZ 2026" class="game-thumb" />
+      </a>
     </div>
   </template>
 
@@ -184,11 +127,10 @@
       .then(html => {
         document.getElementById('layout-container').innerHTML = html;
         
-        // Inject the games content inside the main-content area in layout.html
+        // Inject games content into main-content container
         const content = document.getElementById('games-content').content.cloneNode(true);
         document.getElementById('main-content').appendChild(content);
 
-        // Bind top-right icon modal trigger
         initModalEvents();
       })
       .catch(err => console.error('Error loading layout:', err));
