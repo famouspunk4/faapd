@@ -4,49 +4,10 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ffffff'/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd</title>
+  <title>faapd - Franklin Abboud</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: #ffffff;
-      color: #000000;
-      font-family: Georgia, "Times New Roman", Times, serif;
-      font-size: 13px;
-      line-height: 1.5;
-      padding: 40px 20px;
-    }
-
-    .site-wrapper {
-      max-width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 40px;
-      padding: 0 40px;
-    }
-
-    .content-left {
-      max-width: 580px;
-      width: 100%;
-    }
-
-    .logo {
-      font-family: Arial, Helvetica, sans-serif;
-      font-weight: bold;
-      font-size: 26px;
-      color: #000000;
-      text-decoration: none;
-      display: block;
-      margin-bottom: 25px;
-    }
-
-    /* Profile Header & Socials */
+    /* Specific styles for the Author Profile Page */
     .author-title {
       font-family: Arial, Helvetica, sans-serif;
       font-weight: bold;
@@ -120,22 +81,67 @@
       flex: 1;
     }
 
-    /* Mobile Responsiveness Rules */
+    /* Modal Styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border: 1px solid #000000;
+      padding: 25px;
+      width: 300px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .modal-box h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-box input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      font-size: 12px;
+      font-family: Arial, sans-serif;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .modal-actions button {
+      background: #000000;
+      color: #ffffff;
+      border: none;
+      padding: 6px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .modal-actions button.cancel-btn {
+      background: #ffffff;
+      color: #000000;
+      border: 1px solid #000000;
+    }
+
     @media (max-width: 768px) {
-      body {
-        padding: 20px 15px;
-      }
-
-      .site-wrapper {
-        flex-direction: column;
-        padding: 0;
-        gap: 30px;
-      }
-
-      .content-left {
-        max-width: 100%;
-      }
-
       .post-body {
         flex-direction: column;
         gap: 10px;
@@ -151,59 +157,124 @@
 </head>
 <body>
 
-  <div class="site-wrapper">
-    <div class="content-left">
-      <a href="index.html" class="logo">faapd</a>
+  <!-- Layout Container -->
+  <div id="layout-container"></div>
 
-      <div class="author-title">Franklin Abboud</div>
-      <div class="social-links">
-        <a href="https://youtube.com/@djmodelfrankfamouspunk4?si=2f4m0Br-MloxtB2u" target="_blank" rel="noopener noreferrer">YouTube</a>
-        <a href="https://soundcloud.com/djmodelfrankfamouspunk4" target="_blank" rel="noopener noreferrer">SoundCloud</a>
-        <a href="https://github.com/famouspunk4" target="_blank" rel="noopener noreferrer">GitHub</a>
+  <!-- Content Template for Franklin Abboud -->
+  <template id="author-content">
+    <div class="author-title">Franklin Abboud</div>
+    <div class="social-links">
+      <a href="https://youtube.com/@djmodelfrankfamouspunk4?si=2f4m0Br-MloxtB2u" target="_blank" rel="noopener noreferrer">YouTube</a>
+      <a href="https://soundcloud.com/djmodelfrankfamouspunk4" target="_blank" rel="noopener noreferrer">SoundCloud</a>
+      <a href="https://github.com/famouspunk4" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+
+    <div id="author-feed"></div>
+  </template>
+
+  <!-- Login Modal -->
+  <div id="login-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h3>Account Login</h3>
+      <input type="password" id="modal-passcode" placeholder="Enter Passcode" />
+      <div class="modal-actions">
+        <button class="cancel-btn" id="modal-cancel">Cancel</button>
+        <button id="modal-submit">Enter</button>
       </div>
-
-      <div id="author-feed"></div>
     </div>
   </div>
 
   <script src="posts.js"></script>
   <script>
-    const feedContainer = document.getElementById('author-feed');
-    const TARGET_AUTHOR = "Franklin Abboud";
+    // Fetch and inject layout.html
+    fetch('layout.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('layout-container').innerHTML = html;
 
-    const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
-    const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
-    const allPosts = [...localPosts.slice().reverse(), ...staticPosts];
+        // Inject page content into main-content container
+        const content = document.getElementById('author-content').content.cloneNode(true);
+        document.getElementById('main-content').appendChild(content);
 
-    // Filter posts for Franklin only
-    const authorPosts = allPosts.filter(p => p.author.toLowerCase() === TARGET_AUTHOR.toLowerCase());
+        initModalEvents();
+        loadAuthorFeed();
+      })
+      .catch(err => console.error('Error loading layout:', err));
 
-    if (authorPosts.length === 0) {
-      feedContainer.innerHTML = "<p style='font-family: Arial; font-size: 11px;'>No posts found.</p>";
-    } else {
-      let authorFeedHtml = '';
+    function initModalEvents() {
+      const accountIconBtn = document.getElementById('account-icon-btn');
+      const loginModal = document.getElementById('login-modal');
+      const modalCancel = document.getElementById('modal-cancel');
+      const modalSubmit = document.getElementById('modal-submit');
+      const modalPasscode = document.getElementById('modal-passcode');
 
-      authorPosts.forEach(post => {
-        const d = new Date(post.date);
-        const formattedDate = d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
-        const formattedTime = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      if (accountIconBtn) {
+        accountIconBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          loginModal.style.display = 'flex';
+          modalPasscode.focus();
+        });
+      }
 
-        authorFeedHtml += `
-          <article class="post">
-            <div class="post-header">
-              <span class="author-tag">${post.author}</span>
-              <span class="post-title"><a href="post.html?id=${post.id}">${post.title}</a></span>
-              <span class="post-date">${formattedDate} @ ${formattedTime}</span>
-            </div>
-            <div class="post-body">
-              <img src="${post.image}" alt="Thumbnail" class="post-thumb" />
-              <div class="post-text"><p>${post.text}</p></div>
-            </div>
-          </article>
-        `;
+      modalCancel.addEventListener('click', () => {
+        loginModal.style.display = 'none';
+        modalPasscode.value = '';
       });
 
-      feedContainer.innerHTML = authorFeedHtml;
+      modalSubmit.addEventListener('click', handleLogin);
+      modalPasscode.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+      });
+
+      function handleLogin() {
+        if (modalPasscode.value.trim() !== '') {
+          loginModal.style.display = 'none';
+          window.location.href = 'create.html';
+        } else {
+          alert('Please enter a passcode.');
+        }
+      }
+    }
+
+    function loadAuthorFeed() {
+      const feedContainer = document.getElementById('author-feed');
+      if (!feedContainer) return;
+
+      const TARGET_AUTHOR = "Franklin Abboud";
+
+      const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+      const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
+      const allPosts = [...localPosts.slice().reverse(), ...staticPosts];
+
+      const authorPosts = allPosts.filter(p => p.author && p.author.toLowerCase() === TARGET_AUTHOR.toLowerCase());
+
+      if (authorPosts.length === 0) {
+        feedContainer.innerHTML = "<p style='font-family: Arial; font-size: 11px;'>No posts found.</p>";
+      } else {
+        let authorFeedHtml = '';
+
+        authorPosts.forEach(post => {
+          const d = new Date(post.date);
+          const formattedDate = d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
+          const formattedTime = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+          authorFeedHtml += `
+            <article class="post">
+              <div class="post-header">
+                <span class="author-tag">${post.author}</span>
+                <span class="post-title"><a href="post.html?id=${post.id}">${post.title}</a></span>
+                <span class="post-date">${formattedDate} @ ${formattedTime}</span>
+              </div>
+              <div class="post-body">
+                ${post.image ? `<img src="${post.image}" alt="Thumbnail" class="post-thumb" />` : ''}
+                <div class="post-text"><p>${post.text || ''}</p></div>
+              </div>
+            </article>
+          `;
+        });
+
+        feedContainer.innerHTML = authorFeedHtml;
+      }
     }
   </script>
 </body>
