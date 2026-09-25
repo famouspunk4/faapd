@@ -7,35 +7,34 @@
   <title>faapd</title>
 
   <style>
-    /* Reset layout grid bounds so the main content can span edge-to-edge */
-    #layout-container, #main-content, body {
+    /* Let layout.html control header and body spacing again */
+    #main-content {
       width: 100% !important;
-      max-width: 100% !important;
-      margin: 0 !important;
-      padding: 0 !important;
+      max-width: none !important;
     }
 
-    /* Absolute flex container to center the iframe box in the viewport space */
+    /* Fixed container positioned relative to layout header */
     .game-wrapper {
       position: fixed;
-      top: 40px; /* Leaves room for top header */
-      left: 150px;
+      top: 0px;           /* Pushes frame below layout.html header */
+      left: 0;
       right: 0;
-      bottom: 0;
+      bottom: 20px;
       display: flex;
-      justify-content: flex-start;
+      justify-content: flex-start; /* Aligns game box to left */
       align-items: center;
+      padding-left: 200px;   /* Margin from left edge */
       z-index: 10;
-      pointer-events: none; /* Allows header/sidebar clicks to pass through outside the box */
+      pointer-events: none;
     }
 
-    /* Fixed Square Game Container */
+    /* Big 1:1 Square Frame */
     .game-frame-container {
-      pointer-events: auto; /* Re-enables interaction inside the game box */
-      width: 90vh;          /* Equal width and height tied to screen height */
+      pointer-events: auto;
+      width: 90vh;
       height: 90vh;
-      max-width: 85vw;      /* Keeps responsiveness on narrower displays */
-      max-height: 85vw;
+      max-width: 80vw;
+      max-height: 80vw;
       background-color: #000000;
       border: 1px dashed #000000;
       overflow: hidden;
@@ -146,7 +145,7 @@
         document.getElementById('layout-container').innerHTML = html;
         
         const content = document.getElementById('game-content').content.cloneNode(true);
-        document.body.appendChild(content); // Appends to body directly to override layout constraints
+        document.body.appendChild(content);
 
         const iframe = document.getElementById('game-iframe');
         if (iframe) {
