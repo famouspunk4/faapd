@@ -18,13 +18,13 @@
     /* Absolute flex container to center the iframe box in the viewport space */
     .game-wrapper {
       position: fixed;
-      top: 0px; /* Leaves room for top header */
-      left: 40;
+      top: 40px; /* Leaves room for top header */
+      left: 0;
       right: 0;
       bottom: 0;
       display: flex;
-      justify-content: left;
-      align-items: left;
+      justify-content: center;
+      align-items: center;
       z-index: 10;
       pointer-events: none; /* Allows header/sidebar clicks to pass through outside the box */
     }
@@ -32,8 +32,8 @@
     /* Fixed Square Game Container */
     .game-frame-container {
       pointer-events: auto; /* Re-enables interaction inside the game box */
-      width: 75vh;          /* Equal width and height tied to screen height */
-      height: 75vh;
+      width: 100vh;          /* Equal width and height tied to screen height */
+      height: 100vh;
       max-width: 85vw;      /* Keeps responsiveness on narrower displays */
       max-height: 85vw;
       background-color: #000000;
