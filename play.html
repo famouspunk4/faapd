@@ -4,7 +4,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ffffff'/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd - Game</title>
+  <title>faapd</title>
 
   <style>
     /* Reset layout grid bounds so the main content can span edge-to-edge */
@@ -18,13 +18,13 @@
     /* Absolute flex container to center the iframe box in the viewport space */
     .game-wrapper {
       position: fixed;
-      top: 60px; /* Leaves room for top header */
-      left: 0;
+      top: 0px; /* Leaves room for top header */
+      left: 40;
       right: 0;
       bottom: 0;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      justify-content: left;
+      align-items: left;
       z-index: 10;
       pointer-events: none; /* Allows header/sidebar clicks to pass through outside the box */
     }
