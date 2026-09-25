@@ -4,26 +4,29 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ffffff'/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd</title>
+  <title>faapd - Game</title>
 
   <style>
-    /* Center container and expand height to fit game viewport */
+    /* Center wrapper relative to the viewport height */
     .game-wrapper {
       display: flex;
       justify-content: center;
       align-items: center;
       width: 100%;
+      min-height: calc(100vh - 120px);
       margin: 0 auto;
     }
 
+    /* Perfect 1:1 Square Container */
     .game-frame-container {
       width: 100%;
-      max-width: 1280px; /* Expands width to match main layout */
-      height: 80vh;      /* Sets frame to 80% of view height so scrollbars disappear */
+      max-width: 650px;       /* Increased width */
+      aspect-ratio: 1 / 1;    /* Enforces square dimensions */
+      max-height: 80vh;       /* Prevents vertical scrolling */
       background-color: #000000;
       border: 1px dashed #000000;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .game-frame {
@@ -33,7 +36,7 @@
       display: block;
     }
 
-    /* Modal Overlay Styles */
+    /* Login Modal Styles */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -99,7 +102,7 @@
   <!-- Layout Container Shell -->
   <div id="layout-container"></div>
 
-  <!-- Content Template for Game Container -->
+  <!-- Game Content Template -->
   <template id="game-content">
     <div class="game-wrapper">
       <div class="game-frame-container">
