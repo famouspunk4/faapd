@@ -4,7 +4,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ffffff'/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd - Games</title>
+  <title>faapd</title>
 
   <style>
     .games-grid {
@@ -26,9 +26,11 @@
 
     .game-thumb {
       width: 100%;
-      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
       display: block;
       border: 1px dashed #000000;
+      background-color: #f0f0f0;
     }
 
     .modal-overlay {
@@ -122,7 +124,13 @@
         document.getElementById('layout-container').innerHTML = html;
         
         const content = document.getElementById('games-content').content.cloneNode(true);
-        document.getElementById('main-content').appendChild(content);
+        const mainContent = document.getElementById('main-content');
+        
+        if (mainContent) {
+          mainContent.appendChild(content);
+        } else {
+          document.getElementById('layout-container').appendChild(content);
+        }
 
         initModalEvents();
         loadGames();
@@ -138,38 +146,58 @@
       const gridContainer = document.getElementById('games-grid');
       
       try {
+        // Fetch contents of the games directory via GitHub API
         const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/games`);
-        if (!response.ok) throw new Error('Games folder not found');
+        if (!response.ok) throw new Error('Failed to access games directory on GitHub.');
         
         const files = await response.json();
+        
+        // Filter out .html game files
         const htmlFiles = files.filter(file => file.name.endsWith('.html'));
 
         if (htmlFiles.length === 0) {
-          gridContainer.innerHTML = '<p style="font-family: Arial; font-size: 11px;">No games available.</p>';
+          gridContainer.innerHTML = '<p style="font-family: Arial; font-size: 11px;">No games available in the games folder.</p>';
           return;
         }
 
         gridContainer.innerHTML = '';
 
         htmlFiles.forEach(file => {
-          const gameFile = file.name; // zonbikillaz.html
-          const baseName = file.name.replace(/\.html$/, '');
-          // Explicit root-relative path pointing to the games directory image
-          const thumbUrl = `./games/${baseName}.png`;
+          const gameFile = file.name;
+          const baseName = file.name.replace(/\.html$/i, '');
+
+          // Check if a matching image file exists in the directory payload
+          const imageFile = files.find(f => {
+            const nameLower = f.name.toLowerCase();
+            return nameLower.startsWith(baseName.toLowerCase() + '.') && 
+                   (nameLower.endsWith('.png') || nameLower.endsWith('.jpg') || nameLower.endsWith('.jpeg') || nameLower.endsWith('.webp'));
+          });
+
+          // Use the exact filename returned by GitHub to avoid case-sensitivity issues on Linux/GitHub Pages
+          const thumbUrl = imageFile ? `games/${imageFile.name}` : `games/${baseName}.png`;
 
           const card = document.createElement('a');
-          card.href = `play.html?game=${gameFile}`;
+          card.href = `play.html?game=${encodeURIComponent(gameFile)}`;
           card.className = 'game-card';
-          card.innerHTML = `<img src="${thumbUrl}" alt="${baseName}" class="game-thumb" onerror="this.onerror=null; this.src='games/${baseName}.png';" />`;
+          
+          card.innerHTML = `
+            <img 
+              src="${thumbUrl}" 
+              alt="${baseName}" 
+              class="game-thumb" 
+              onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'280\' height=\'157\' viewBox=\'0 0 280 157\'><rect width=\'280\' height=\'157\' fill=\'%23f0f0f0\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'Arial\' font-size=\'12\' fill=\'%23000000\'>${baseName}</text></svg>';" 
+            />
+          `;
           
           gridContainer.appendChild(card);
         });
+
       } catch (err) {
-        console.error('Error loading games:', err);
-        // Direct static fallback using relative pathing
+        console.error('Error fetching games dynamically:', err);
+        // Fallback static card if GitHub API rate limits or offline
         gridContainer.innerHTML = `
           <a href="play.html?game=zonbikillaz.html" class="game-card">
-            <img src="./games/zonbikillaz.png" alt="ZONBI KILLAZ 2026" class="game-thumb" />
+            <img src="games/zonbikillaz.png" alt="zonbikillaz" class="game-thumb" />
           </a>
         `;
       }
