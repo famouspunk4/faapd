@@ -4,7 +4,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ffffff'/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd</title>
+  <title>faapd - Games</title>
 
   <style>
     /* Specific styles for the Games thumbnail grid */
@@ -100,11 +100,8 @@
 
   <!-- Content Template for Games -->
   <template id="games-content">
-    <div class="games-grid">
-      <!-- Game Card 1 -->
-      <a href="zonbikillaz.html" class="game-card">
-        <img src="zonbikillaz.png" alt="ZONBI KILLAZ 2026" class="game-thumb" />
-      </a>
+    <div id="games-grid" class="games-grid">
+      <!-- Games will load dynamically here -->
     </div>
   </template>
 
@@ -121,19 +118,69 @@
   </div>
 
   <script>
-    // Fetch and load layout.html shell
+    const GITHUB_USERNAME = "famouspunk4";
+    const REPO_NAME = "faapd";
+
+    // Load layout shell first
     fetch('layout.html')
       .then(response => response.text())
       .then(html => {
         document.getElementById('layout-container').innerHTML = html;
         
-        // Inject games content into main-content container
+        // Inject games content grid into main-content placeholder
         const content = document.getElementById('games-content').content.cloneNode(true);
         document.getElementById('main-content').appendChild(content);
 
         initModalEvents();
+        loadGames();
       })
-      .catch(err => console.error('Error loading layout:', err));
+      .catch(err => {
+        console.error('Error loading layout:', err);
+        // Fallback for local testing
+        const content = document.getElementById('games-content').content.cloneNode(true);
+        document.getElementById('layout-container').appendChild(content);
+        loadGames();
+      });
+
+    async function loadGames() {
+      const gridContainer = document.getElementById('games-grid');
+      
+      try {
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/games`);
+        if (!response.ok) throw new Error('Games folder not found');
+        
+        const files = await response.json();
+        const htmlFiles = files.filter(file => file.name.endsWith('.html'));
+
+        if (htmlFiles.length === 0) {
+          gridContainer.innerHTML = '<p style="font-family: Arial; font-size: 11px;">No games available.</p>';
+          return;
+        }
+
+        gridContainer.innerHTML = '';
+
+        htmlFiles.forEach(file => {
+          const baseName = file.name.replace('.html', '');
+          const gameUrl = `games/${file.name}`;
+          const thumbUrl = `games/${baseName}.png`;
+
+          const card = document.createElement('a');
+          card.href = gameUrl;
+          card.className = 'game-card';
+          card.innerHTML = `<img src="${thumbUrl}" alt="${baseName}" class="game-thumb" />`;
+          
+          gridContainer.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Error loading games dynamic list:', err);
+        // Direct static fallback to zonbikillaz if API fetch fails or runs locally
+        gridContainer.innerHTML = `
+          <a href="games/zonbikillaz.html" class="game-card">
+            <img src="games/zonbikillaz.png" alt="ZONBI KILLAZ 2026" class="game-thumb" />
+          </a>
+        `;
+      }
+    }
 
     function initModalEvents() {
       const accountIconBtn = document.getElementById('account-icon-btn');
@@ -150,15 +197,22 @@
         });
       }
 
-      modalCancel.addEventListener('click', () => {
-        loginModal.style.display = 'none';
-        modalPasscode.value = '';
-      });
+      if (modalCancel) {
+        modalCancel.addEventListener('click', () => {
+          loginModal.style.display = 'none';
+          modalPasscode.value = '';
+        });
+      }
 
-      modalSubmit.addEventListener('click', handleLogin);
-      modalPasscode.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleLogin();
-      });
+      if (modalSubmit) {
+        modalSubmit.addEventListener('click', handleLogin);
+      }
+
+      if (modalPasscode) {
+        modalPasscode.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') handleLogin();
+        });
+      }
 
       function handleLogin() {
         if (modalPasscode.value.trim() !== '') {
