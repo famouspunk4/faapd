@@ -7,33 +7,32 @@
   <title>faapd</title>
 
   <style>
-    /* Let layout.html control header and body spacing again */
     #main-content {
       width: 100% !important;
       max-width: none !important;
     }
 
-    /* Fixed container positioned relative to layout header */
+    /* Fixed overlay container */
     .game-wrapper {
       position: fixed;
-      top: 0px;           /* Pushes frame below layout.html header */
+      top: 0px;
       left: 0;
       right: 0;
       bottom: 0px;
       display: flex;
-      justify-content: flex-start; /* Aligns game box to left */
+      justify-content: flex-start;
       align-items: center;
-      padding-left: 50px;   /* Margin from left edge */
+      padding-left: 50px;
       z-index: 10;
-      /* Removed pointer-events: none so clicks/focus pass directly into the game area */
+      pointer-events: none; /* Passes clicks through background space to navigation */
     }
 
-    /* Big Frame Sizing */
+    /* Game Frame Container */
     .game-frame-container {
-      pointer-events: auto;  /* Ensures click events are received directly */
+      pointer-events: auto; /* Re-enables clicks/focus specifically for the game frame */
       aspect-ratio: 4 / 3;
-      height: 80vh;          /* Height drives the size */
-      max-height: 85vh;      /* Cap height on large screens */
+      height: 80vh;
+      max-height: 85vh;
       background-color: #000000;
       border: 1px dashed #000000;
       overflow: hidden;
@@ -149,7 +148,6 @@
         const iframe = document.getElementById('game-iframe');
         if (iframe) {
           iframe.src = `games/${gameParam}`;
-          // Auto-focuses iframe on load so WASD and keyboard inputs register immediately
           iframe.onload = () => {
             iframe.contentWindow.focus();
           };
