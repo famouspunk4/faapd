@@ -96,7 +96,9 @@
   <div id="layout-container"></div>
 
   <template id="games-content">
-    <div id="games-grid" class="games-grid"></div>
+    <div id="games-grid" class="games-grid">
+      <!-- Games will load dynamically here -->
+    </div>
   </template>
 
   <div id="login-modal" class="modal-overlay">
@@ -118,6 +120,7 @@
       .then(response => response.text())
       .then(html => {
         document.getElementById('layout-container').innerHTML = html;
+        
         const content = document.getElementById('games-content').content.cloneNode(true);
         document.getElementById('main-content').appendChild(content);
 
@@ -149,23 +152,24 @@
         gridContainer.innerHTML = '';
 
         htmlFiles.forEach(file => {
-          const gameFile = file.name; // e.g. zonbikillaz.html
+          const gameFile = file.name; // zonbikillaz.html
           const baseName = file.name.replace(/\.html$/, '');
-          const thumbUrl = `games/${baseName}.png`;
+          // Explicit root-relative path pointing to the games directory image
+          const thumbUrl = `./games/${baseName}.png`;
 
           const card = document.createElement('a');
-          // Links to play.html with the game filename attached
           card.href = `play.html?game=${gameFile}`;
           card.className = 'game-card';
-          card.innerHTML = `<img src="${thumbUrl}" alt="${baseName}" class="game-thumb" />`;
+          card.innerHTML = `<img src="${thumbUrl}" alt="${baseName}" class="game-thumb" onerror="this.onerror=null; this.src='games/${baseName}.png';" />`;
           
           gridContainer.appendChild(card);
         });
       } catch (err) {
         console.error('Error loading games:', err);
+        // Direct static fallback using relative pathing
         gridContainer.innerHTML = `
           <a href="play.html?game=zonbikillaz.html" class="game-card">
-            <img src="games/zonbikillaz.png" alt="ZONBI KILLAZ 2026" class="game-thumb" />
+            <img src="./games/zonbikillaz.png" alt="ZONBI KILLAZ 2026" class="game-thumb" />
           </a>
         `;
       }
