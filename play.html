@@ -7,13 +7,23 @@
   <title>faapd - Game</title>
 
   <style>
+    /* Center container and expand height to fit game viewport */
+    .game-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      margin: 0 auto;
+    }
+
     .game-frame-container {
       width: 100%;
-      max-width: 960px;
-      aspect-ratio: 16 / 9;
+      max-width: 1280px; /* Expands width to match main layout */
+      height: 80vh;      /* Sets frame to 80% of view height so scrollbars disappear */
       background-color: #000000;
       border: 1px dashed #000000;
       overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .game-frame {
@@ -23,6 +33,7 @@
       display: block;
     }
 
+    /* Modal Overlay Styles */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -85,14 +96,19 @@
 </head>
 <body>
 
+  <!-- Layout Container Shell -->
   <div id="layout-container"></div>
 
+  <!-- Content Template for Game Container -->
   <template id="game-content">
-    <div class="game-frame-container">
-      <iframe id="game-iframe" src="" class="game-frame" allowfullscreen></iframe>
+    <div class="game-wrapper">
+      <div class="game-frame-container">
+        <iframe id="game-iframe" src="" class="game-frame" allowfullscreen></iframe>
+      </div>
     </div>
   </template>
 
+  <!-- Login Modal -->
   <div id="login-modal" class="modal-overlay">
     <div class="modal-box">
       <h3>Account Login</h3>
@@ -105,7 +121,6 @@
   </div>
 
   <script>
-    // Get game file parameter from URL (e.g. ?game=zonbikillaz.html)
     const urlParams = new URLSearchParams(window.location.search);
     const gameParam = urlParams.get('game') || 'zonbikillaz.html';
 
@@ -117,7 +132,6 @@
         const content = document.getElementById('game-content').content.cloneNode(true);
         document.getElementById('main-content').appendChild(content);
 
-        // Point the iframe to the target game in games/ folder
         const iframe = document.getElementById('game-iframe');
         if (iframe) {
           iframe.src = `games/${gameParam}`;
