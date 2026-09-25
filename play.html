@@ -4,36 +4,42 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ffffff'/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd</title>
+  <title>faapd - Game</title>
 
   <style>
-    /* Force main content area to take full width */
-    #main-content {
+    /* Reset layout grid bounds so the main content can span edge-to-edge */
+    #layout-container, #main-content, body {
       width: 100% !important;
-      max-width: none !important;
+      max-width: 100% !important;
       margin: 0 !important;
-      padding: 20px 0 !important;
+      padding: 0 !important;
     }
 
-    /* Outer wrapper centering the frame */
+    /* Absolute flex container to center the iframe box in the viewport space */
     .game-wrapper {
+      position: fixed;
+      top: 60px; /* Leaves room for top header */
+      left: 0;
+      right: 0;
+      bottom: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 100%;
-      margin: 0 auto;
+      z-index: 10;
+      pointer-events: none; /* Allows header/sidebar clicks to pass through outside the box */
     }
 
-    /* Big 1:1 Square Frame */
+    /* Fixed Square Game Container */
     .game-frame-container {
-      width: 80vh;            /* Uses viewport height so it remains a big square without overflowing vertically */
-      height: 80vh;           /* Matches width to form a 1:1 square */
-      max-width: 90vw;        /* Prevents horizontal overflow on smaller screens */
-      max-height: 90vw;       /* Maintains square scaling */
+      pointer-events: auto; /* Re-enables interaction inside the game box */
+      width: 75vh;          /* Equal width and height tied to screen height */
+      height: 75vh;
+      max-width: 85vw;      /* Keeps responsiveness on narrower displays */
+      max-height: 85vw;
       background-color: #000000;
       border: 1px dashed #000000;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     }
 
     .game-frame {
@@ -43,7 +49,7 @@
       display: block;
     }
 
-    /* Login Modal */
+    /* Login Modal Styles */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -106,7 +112,7 @@
 </head>
 <body>
 
-  <!-- Layout Container Shell -->
+  <!-- Layout Shell Container -->
   <div id="layout-container"></div>
 
   <!-- Game Content Template -->
@@ -140,13 +146,7 @@
         document.getElementById('layout-container').innerHTML = html;
         
         const content = document.getElementById('game-content').content.cloneNode(true);
-        const mainContent = document.getElementById('main-content');
-        
-        if (mainContent) {
-          mainContent.appendChild(content);
-        } else {
-          document.getElementById('layout-container').appendChild(content);
-        }
+        document.body.appendChild(content); // Appends to body directly to override layout constraints
 
         const iframe = document.getElementById('game-iframe');
         if (iframe) {
