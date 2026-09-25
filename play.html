@@ -4,25 +4,32 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ffffff'/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd - Game</title>
+  <title>faapd</title>
 
   <style>
-    /* Center wrapper relative to the viewport height */
+    /* Force main content area to take full width */
+    #main-content {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 20px 0 !important;
+    }
+
+    /* Outer wrapper centering the frame */
     .game-wrapper {
       display: flex;
       justify-content: center;
       align-items: center;
       width: 100%;
-      min-height: calc(100vh - 120px);
       margin: 0 auto;
     }
 
-    /* Perfect 1:1 Square Container */
+    /* Big 1:1 Square Frame */
     .game-frame-container {
-      width: 100%;
-      max-width: 650px;       /* Increased width */
-      aspect-ratio: 1 / 1;    /* Enforces square dimensions */
-      max-height: 80vh;       /* Prevents vertical scrolling */
+      width: 80vh;            /* Uses viewport height so it remains a big square without overflowing vertically */
+      height: 80vh;           /* Matches width to form a 1:1 square */
+      max-width: 90vw;        /* Prevents horizontal overflow on smaller screens */
+      max-height: 90vw;       /* Maintains square scaling */
       background-color: #000000;
       border: 1px dashed #000000;
       overflow: hidden;
@@ -36,7 +43,7 @@
       display: block;
     }
 
-    /* Login Modal Styles */
+    /* Login Modal */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -133,7 +140,13 @@
         document.getElementById('layout-container').innerHTML = html;
         
         const content = document.getElementById('game-content').content.cloneNode(true);
-        document.getElementById('main-content').appendChild(content);
+        const mainContent = document.getElementById('main-content');
+        
+        if (mainContent) {
+          mainContent.appendChild(content);
+        } else {
+          document.getElementById('layout-container').appendChild(content);
+        }
 
         const iframe = document.getElementById('game-iframe');
         if (iframe) {
