@@ -4,10 +4,9 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ffffff'/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd</title>
+  <title>faapd - Games</title>
 
   <style>
-    /* Specific styles for the Games thumbnail grid */
     .games-grid {
       display: flex;
       flex-wrap: wrap;
@@ -32,7 +31,6 @@
       border: 1px dashed #000000;
     }
 
-    /* Account Modal Styles */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -95,17 +93,12 @@
 </head>
 <body>
 
-  <!-- Layout Container -->
   <div id="layout-container"></div>
 
-  <!-- Content Template for Games -->
   <template id="games-content">
-    <div id="games-grid" class="games-grid">
-      <!-- Games will load dynamically here -->
-    </div>
+    <div id="games-grid" class="games-grid"></div>
   </template>
 
-  <!-- Login Modal -->
   <div id="login-modal" class="modal-overlay">
     <div class="modal-box">
       <h3>Account Login</h3>
@@ -121,12 +114,10 @@
     const GITHUB_USERNAME = "famouspunk4";
     const REPO_NAME = "faapd";
 
-    // Fetch and load layout shell
     fetch('layout.html')
       .then(response => response.text())
       .then(html => {
         document.getElementById('layout-container').innerHTML = html;
-        
         const content = document.getElementById('games-content').content.cloneNode(true);
         document.getElementById('main-content').appendChild(content);
 
@@ -158,15 +149,13 @@
         gridContainer.innerHTML = '';
 
         htmlFiles.forEach(file => {
-          // file.path gives 'games/zonbikillaz.html'
-          const gameUrl = file.path; 
-          
-          // Replace .html extension with .png -> 'games/zonbikillaz.png'
-          const thumbUrl = file.path.replace(/\.html$/, '.png'); 
+          const gameFile = file.name; // e.g. zonbikillaz.html
           const baseName = file.name.replace(/\.html$/, '');
+          const thumbUrl = `games/${baseName}.png`;
 
           const card = document.createElement('a');
-          card.href = gameUrl;
+          // Links to play.html with the game filename attached
+          card.href = `play.html?game=${gameFile}`;
           card.className = 'game-card';
           card.innerHTML = `<img src="${thumbUrl}" alt="${baseName}" class="game-thumb" />`;
           
@@ -175,7 +164,7 @@
       } catch (err) {
         console.error('Error loading games:', err);
         gridContainer.innerHTML = `
-          <a href="games/zonbikillaz.html" class="game-card">
+          <a href="play.html?game=zonbikillaz.html" class="game-card">
             <img src="games/zonbikillaz.png" alt="ZONBI KILLAZ 2026" class="game-thumb" />
           </a>
         `;
@@ -204,10 +193,7 @@
         });
       }
 
-      if (modalSubmit) {
-        modalSubmit.addEventListener('click', handleLogin);
-      }
-
+      if (modalSubmit) modalSubmit.addEventListener('click', handleLogin);
       if (modalPasscode) {
         modalPasscode.addEventListener('keypress', (e) => {
           if (e.key === 'Enter') handleLogin();
