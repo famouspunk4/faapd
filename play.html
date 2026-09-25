@@ -23,7 +23,7 @@
       right: 0;
       bottom: 0;
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       z-index: 10;
       pointer-events: none; /* Allows header/sidebar clicks to pass through outside the box */
@@ -32,8 +32,8 @@
     /* Fixed Square Game Container */
     .game-frame-container {
       pointer-events: auto; /* Re-enables interaction inside the game box */
-      width: 100vh;          /* Equal width and height tied to screen height */
-      height: 100vh;
+      width: 90vh;          /* Equal width and height tied to screen height */
+      height: 90vh;
       max-width: 85vw;      /* Keeps responsiveness on narrower displays */
       max-height: 85vw;
       background-color: #000000;
