@@ -4,7 +4,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ffffff'/></svg>">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>faapd</title>
+  <title>faapd - Games</title>
 
   <style>
     /* Specific styles for the Games thumbnail grid */
@@ -121,13 +121,12 @@
     const GITHUB_USERNAME = "famouspunk4";
     const REPO_NAME = "faapd";
 
-    // Load layout shell first
+    // Fetch and load layout shell
     fetch('layout.html')
       .then(response => response.text())
       .then(html => {
         document.getElementById('layout-container').innerHTML = html;
         
-        // Inject games content grid into main-content placeholder
         const content = document.getElementById('games-content').content.cloneNode(true);
         document.getElementById('main-content').appendChild(content);
 
@@ -136,7 +135,6 @@
       })
       .catch(err => {
         console.error('Error loading layout:', err);
-        // Fallback for local testing
         const content = document.getElementById('games-content').content.cloneNode(true);
         document.getElementById('layout-container').appendChild(content);
         loadGames();
@@ -160,9 +158,12 @@
         gridContainer.innerHTML = '';
 
         htmlFiles.forEach(file => {
-          const baseName = file.name.replace('.html', '');
-          const gameUrl = `games/${file.name}`;
-          const thumbUrl = `games/${baseName}.png`;
+          // file.path gives 'games/zonbikillaz.html'
+          const gameUrl = file.path; 
+          
+          // Replace .html extension with .png -> 'games/zonbikillaz.png'
+          const thumbUrl = file.path.replace(/\.html$/, '.png'); 
+          const baseName = file.name.replace(/\.html$/, '');
 
           const card = document.createElement('a');
           card.href = gameUrl;
@@ -172,8 +173,7 @@
           gridContainer.appendChild(card);
         });
       } catch (err) {
-        console.error('Error loading games dynamic list:', err);
-        // Direct static fallback to zonbikillaz if API fetch fails or runs locally
+        console.error('Error loading games:', err);
         gridContainer.innerHTML = `
           <a href="games/zonbikillaz.html" class="game-card">
             <img src="games/zonbikillaz.png" alt="ZONBI KILLAZ 2026" class="game-thumb" />
