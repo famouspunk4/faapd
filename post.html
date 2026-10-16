@@ -35,7 +35,7 @@
       z-index: 100;
     }
 
-    /* Outer Wrapper: Centers the post column in the middle of the screen */
+    /* Outer Wrapper: Keeps feed column horizontally centered */
     .site-wrapper {
       width: 100%;
       display: flex;
@@ -44,7 +44,7 @@
       padding: 0 20px;
     }
 
-    /* Main Content Column: Left-aligns internal text while centered overall */
+    /* Main Content Column */
     .content-left {
       max-width: 580px;
       width: 100%;
@@ -99,7 +99,7 @@
       text-decoration: underline;
     }
 
-    /* Single Post Display */
+    /* Single Post Display - Restored Left Alignment */
     .single-post {
       margin-bottom: 30px;
       text-align: left;
@@ -149,20 +149,23 @@
       display: flex;
       flex-direction: column;
       align-items: flex-start;
+      justify-content: flex-start;
       gap: 10px;
       margin: 12px 0 15px 0;
     }
 
     .full-post-image {
-      width: 100%;
+      width: 120px;
       height: auto;
       max-width: 100%;
       display: block;
+      margin: 0;
+      align-self: flex-start;
     }
 
     .post-text-content {
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.3;
       margin-top: 15px;
       margin-bottom: 30px;
       white-space: pre-wrap;
@@ -172,7 +175,7 @@
     .post-text-content p {
       margin: 0 !important;
       padding: 0 !important;
-      line-height: 1.5 !important;
+      line-height: 1.3 !important;
       display: inline !important;
     }
 
@@ -313,7 +316,6 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     let rawFile = params.get('file') || '';
-    // Strip redundant leading "posts/" prefix if present in the URL parameter
     const postFile = rawFile.replace(/^posts\//, '');
     const postId = params.get('id') || postFile;
 
@@ -329,150 +331,4 @@
       }
 
       const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
-      let foundPost = [...localPosts, ...staticPosts].find(p => p.id == postId || p.filename === postFile || p.url === `posts/${postFile}`);
-
-      if (foundPost) {
-        renderSinglePost({
-          author: foundPost.author || 'FRANKLIN ABBOUD',
-          title: foundPost.title || 'UNTITLED POST',
-          dateStr: foundPost.dateStr || foundPost.date || '',
-          images: Array.isArray(foundPost.images) ? foundPost.images : (foundPost.image ? [foundPost.image] : []),
-          text: foundPost.htmlText || foundPost.text || ''
-        });
-        return;
-      }
-
-      if (postFile) {
-        try {
-          let htmlText = '';
-          const fetchPaths = [
-            `posts/${postFile}`,
-            `./posts/${postFile}`,
-            `https://raw.githubusercontent.com/famouspunk4/faapd/main/posts/${postFile}`
-          ];
-
-          for (const path of fetchPaths) {
-            try {
-              const res = await fetch(path);
-              if (res.ok) {
-                htmlText = await res.text();
-                break;
-              }
-            } catch (err) {
-              continue;
-            }
-          }
-
-          if (!htmlText) throw new Error("Could not fetch file from any endpoint");
-
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(htmlText, 'text/html');
-
-          const author = doc.querySelector('.author-tag')?.textContent?.trim() || "FRANKLIN ABBOUD";
-          const title = doc.querySelector('.post-title')?.textContent?.trim() || postFile.replace('.html', '').replace(/-/g, ' ').toUpperCase();
-          const timestamp = doc.querySelector('.post-date')?.textContent?.trim() || '';
-          
-          const imgElements = doc.querySelectorAll('.post-images-column img, .full-post-image, .post-thumb, img');
-          const images = Array.from(imgElements).map(img => img.getAttribute('src')).filter(Boolean);
-
-          const textContainer = doc.querySelector('.post-text-content, .post-text');
-          let bodyText = textContainer ? textContainer.innerHTML.trim() : (doc.querySelector('p')?.innerHTML?.trim() || '');
-          bodyText = bodyText.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '').trim();
-
-          renderSinglePost({
-            author: author,
-            title: title,
-            dateStr: timestamp,
-            images: images,
-            text: bodyText
-          });
-        } catch (e) {
-          container.innerHTML = `<p style="font-family: Arial, sans-serif; font-size: 11px; color: #888;">Post not found.</p>`;
-        }
-      } else {
-        container.innerHTML = `<p style="font-family: Arial, sans-serif; font-size: 11px; color: #888;">No post specified in URL parameters.</p>`;
-      }
-    }
-
-    function renderSinglePost(p) {
-      const imagesList = p.images || [];
-      const imagesHtml = imagesList.map(src => `<img src="${src}" alt="${p.title}" class="full-post-image">`).join('');
-      const bodyContent = p.text || '';
-
-      const postContentElem = document.getElementById('post-content');
-      if (postContentElem) {
-        postContentElem.innerHTML = `
-          <article class="single-post">
-            <div class="post-header">
-              <a href="index.html?author=${encodeURIComponent(p.author)}" class="author-tag">${p.author}</a>
-              <span class="post-title">${p.title}</span>
-              <span class="post-date">${p.dateStr || ''}</span>
-            </div>
-            ${imagesList.length > 0 ? `<div class="post-images-container">${imagesHtml}</div>` : ''}
-            ${bodyContent ? `<div class="post-text-content">${bodyContent}</div>` : ''}
-          </article>
-        `;
-      }
-    }
-
-    function loadComments() {
-      const savedComments = JSON.parse(localStorage.getItem(`comments_${postId}`)) || [];
-      const commentsList = document.getElementById('comments-list');
-      if (!commentsList) return;
-      
-      if (savedComments.length === 0) {
-        commentsList.innerHTML = `<p style="font-size:11px; color:#888;"><em>No comments yet.</em></p>`;
-        return;
-      }
-
-      commentsList.innerHTML = savedComments.map(c => `
-        <div class="comment">
-          <div class="comment-header">
-            <strong>${c.author}</strong>
-            <span class="comment-timestamp">${c.timestamp || ''}</span>
-          </div>
-          <p class="comment-body">${c.text}</p>
-        </div>
-      `).join('');
-    }
-
-    function addComment() {
-      const author = document.getElementById('comment-author').value.trim();
-      const text = document.getElementById('comment-text').value.trim();
-
-      if (!author || !text) {
-        alert('Please fill out both fields.');
-        return;
-      }
-
-      const now = new Date();
-      const date = now.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
-      const time = now.toLocaleTimeString('en-GB', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-      const newComment = {
-        author: author,
-        text: text,
-        timestamp: `${date} @ ${time} UTC`
-      };
-
-      const savedComments = JSON.parse(localStorage.getItem(`comments_${postId}`)) || [];
-      savedComments.push(newComment);
-      
-      localStorage.setItem(`comments_${postId}`, JSON.stringify(savedComments));
-
-      document.getElementById('comment-author').value = '';
-      document.getElementById('comment-text').value = '';
-      loadComments();
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      loadPost();
-      loadComments();
-    });
-  </script>
-</body>
-</html>
-```<FollowUp>
-<Suggest>Is the post loading correctly now when you click into it from the feed?</Suggest>
-<Suggest>Would you like to check if the post file names in your /posts directory match the URL query parameters?</Suggest>
-</FollowUp>
+      let foundPost = [...localPosts, ...staticPosts].find(p => p.id
