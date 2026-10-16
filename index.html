@@ -6,11 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>faapd</title>
   <style>
-    /* Centers the main feed container in the middle of the viewport */
     #main-content {
+      width: 100% !important;
       max-width: 580px !important;
       margin: 0 auto !important;
-      width: 100%;
     }
 
     /* Feed specific styles */
@@ -166,7 +165,7 @@
 </head>
 <body>
 
-  <!-- Container for the shared layout shell -->
+  <!-- Shared layout shell -->
   <div id="layout-container"></div>
 
   <!-- Login Modal -->
@@ -181,11 +180,9 @@
     </div>
   </div>
 
-  <!-- Fallback script check to prevent script blocking white screens -->
-  <script src="posts.js" onerror="console.warn('posts.js not found, continuing with default data execution');"></script>
+  <script src="posts.js" onerror="console.warn('posts.js not found, continuing execution');"></script>
 
   <script>
-    // 1. Fetch and inject layout.html with error fallback
     fetch('layout.html')
       .then(response => {
         if (!response.ok) throw new Error('Network error fetching layout');
@@ -198,7 +195,6 @@
       })
       .catch(err => {
         console.error('Error loading layout:', err);
-        // Fallback: render directly into layout-container if main-content element isn't found
         let fallbackMain = document.getElementById('main-content');
         if (!fallbackMain) {
           fallbackMain = document.createElement('main');
@@ -209,7 +205,6 @@
         loadFeed();
       });
 
-    // 2. Setup account modal controls
     function initModalEvents() {
       const accountIconBtn = document.getElementById('account-icon-btn');
       const loginModal = document.getElementById('login-modal');
@@ -249,7 +244,6 @@
       }
     }
 
-    // 3. Load dynamic post feed into main-content container
     async function loadFeed() {
       let container = document.getElementById('main-content');
       if (!container) {
