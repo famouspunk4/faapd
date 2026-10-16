@@ -6,10 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>faapd</title>
   <style>
-    /* Feed specific styles */
+    /* Center the post container on screen */
+    #main-content {
+      max-width: 580px !important;
+      margin: 0 auto !important;
+      width: 100%;
+    }
+
+    /* Feed item styles */
     .feed-item {
-      margin-bottom: 30px;
-      padding-bottom: 20px;
+      margin-bottom: 40px;
+      padding-bottom: 25px;
       border-bottom: 1px solid #eeeeee;
     }
 
@@ -21,7 +28,7 @@
       font-family: Arial, Helvetica, sans-serif;
       font-size: 11px;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: flex;
@@ -63,40 +70,97 @@
       font-size: 11px;
     }
 
-    .post-content-row {
-      display: flex !important;
-      align-items: flex-start !important;
-      justify-content: flex-start !important;
-      gap: 15px !important;
-      margin-top: 10px !important;
+    /* Instagram-Style Horizontal Scroll Carousel */
+    .carousel-container {
+      position: relative;
+      width: 100%;
+      margin: 12px 0;
+      overflow: hidden;
+      border: 1px solid #eeeeee;
+      background: #fafafa;
     }
 
-    .post-thumb {
-      width: 120px !important;
-      height: auto !important;
-      flex-shrink: 0 !important;
-      display: block !important;
-      align-self: flex-start !important;
-      margin: 0 !important;
+    .carousel-track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; /* Hide scrollbar for Firefox */
+    }
+
+    .carousel-track::-webkit-scrollbar {
+      display: none; /* Hide scrollbar for Chrome/Safari */
+    }
+
+    .carousel-slide {
+      flex: 0 0 100%;
+      width: 100%;
+      scroll-snap-align: start;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .carousel-slide img {
+      width: 100%;
+      height: auto;
+      max-height: 500px;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Carousel Navigation Arrows */
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.5);
+      color: #ffffff;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .carousel-btn.prev { left: 10px; }
+    .carousel-btn.next { right: 10px; }
+
+    /* Carousel Pagination Dots */
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      background-color: #ccc;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+
+    .dot.active {
+      background-color: #000000;
     }
 
     .post-text-content {
       font-size: 13px !important;
-      line-height: 1.3 !important;
-      flex-grow: 1 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      align-self: flex-start !important;
+      line-height: 1.5 !important;
+      margin-top: 10px !important;
       white-space: pre-wrap !important;
     }
 
-    .post-text-content p {
-      margin: 0 !important;
-      padding: 0 !important;
-      line-height: 1.3 !important;
-      display: inline !important;
-    }
-
+    /* Login Modal Styles */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -159,7 +223,7 @@
 </head>
 <body>
 
-  <!-- Container for the shared layout shell -->
+  <!-- Container for shared layout shell -->
   <div id="layout-container"></div>
 
   <!-- Login Modal -->
@@ -187,7 +251,7 @@
       })
       .catch(err => console.error('Error loading layout:', err));
 
-    // 2. Setup account modal controls
+    // 2. Modal interactions
     function initModalEvents() {
       const accountIconBtn = document.getElementById('account-icon-btn');
       const loginModal = document.getElementById('login-modal');
@@ -223,7 +287,7 @@
       }
     }
 
-    // 3. Load dynamic post feed into main-content container
+    // 3. Load dynamic posts
     async function loadFeed() {
       const container = document.getElementById('main-content');
       if (!container) return;
@@ -253,15 +317,18 @@
 
             const textContainer = doc.querySelector('.post-text-content');
             let extractedText = textContainer ? textContainer.innerHTML.trim() : (doc.querySelector('p')?.innerHTML?.trim() || '');
-            
             extractedText = extractedText.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '').trim();
+
+            // Extract single or multiple image URLs
+            const imgElements = doc.querySelectorAll('.full-post-image, .post-thumb, img');
+            const images = Array.from(imgElements).map(img => img.getAttribute('src')).filter(Boolean);
 
             return {
               filename: file.name,
               author: doc.querySelector('.author-tag')?.textContent?.trim() || 'FRANKLIN ABBOUD',
               title: doc.querySelector('.post-title')?.textContent?.trim() || file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase(),
               dateStr: doc.querySelector('.post-date')?.textContent?.trim() || '',
-              image: doc.querySelector('.full-post-image, .post-thumb, img')?.getAttribute('src') || '',
+              images: images.length > 0 ? images : (doc.querySelector('img')?.getAttribute('src') ? [doc.querySelector('img').getAttribute('src')] : []),
               htmlText: extractedText
             };
           }));
@@ -281,6 +348,7 @@
       renderFeed(allPosts);
     }
 
+    // 4. Render Instagram-style posts
     function renderFeed(posts) {
       const container = document.getElementById('main-content');
       
@@ -289,26 +357,54 @@
         return;
       }
 
-      container.innerHTML = posts.map(post => {
+      container.innerHTML = posts.map((post, idx) => {
         const targetUrl = post.filename ? `post.html?file=${post.filename}` : `post.html?id=${post.id}`;
-        const imageTag = post.image ? `<img src="${post.image}" alt="${post.title}" class="post-thumb">` : '';
         const bodyContent = post.htmlText || post.text || '';
+        
+        // Handle images (support both single image string and array of images)
+        let imagesArray = [];
+        if (Array.isArray(post.images) && post.images.length > 0) {
+          imagesArray = post.images;
+        } else if (post.image) {
+          imagesArray = [post.image];
+        }
+
+        let mediaHTML = '';
+        if (imagesArray.length === 1) {
+          mediaHTML = `
+            <div class="carousel-container">
+              <div class="carousel-slide">
+                <img src="${imagesArray[0]}" alt="${post.title}">
+              </div>
+            </div>
+          `;
+        } else if (imagesArray.length > 1) {
+          const slidesHTML = imagesArray.map(src => `
+            <div class="carousel-slide">
+              <img src="${src}" alt="${post.title}">
+            </div>
+          `).join('');
+
+          const dotsHTML = imagesArray.map((_, i) => `
+            <span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
+          `).join('');
+
+          mediaHTML = `
+            <div class="carousel-container" id="carousel-${idx}">
+              <button class="carousel-btn prev" onclick="scrollCarousel(${idx}, -1)">&#10094;</button>
+              <div class="carousel-track" onscroll="updateDots(${idx})">
+                ${slidesHTML}
+              </div>
+              <button class="carousel-btn next" onclick="scrollCarousel(${idx}, 1)">&#10095;</button>
+              <div class="carousel-dots">
+                ${dotsHTML}
+              </div>
+            </div>
+          `;
+        }
 
         return `
           <article class="feed-item">
             <div class="post-header">
               <a href="index.html?author=${encodeURIComponent(post.author)}" class="author-tag">${post.author}</a>
-              <span class="post-title"><a href="${targetUrl}">${post.title}</a></span>
-              <span class="post-date">${post.dateStr || post.date || ''}</span>
-            </div>
-            <div class="post-content-row">
-              ${imageTag}
-              <div class="post-text-content">${bodyContent}</div>
-            </div>
-          </article>
-        `;
-      }).join('');
-    }
-  </script>
-</body>
-</html>
+              <span class="post-title"><a href="${targetUrl}">${post
