@@ -22,6 +22,69 @@
       padding: 40px 20px;
     }
 
+    .logo {
+      position: fixed;
+      top: 40px;
+      left: 40px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: bold;
+      font-size: 26px;
+      color: #000000;
+      text-decoration: none;
+      z-index: 100;
+    }
+
+    .site-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0 20px;
+    }
+
+    .content-left {
+      max-width: 580px;
+      width: 100%;
+    }
+
+    aside {
+      position: fixed;
+      right: 60px;
+      top: 250px;
+      width: 140px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+    }
+
+    .nav-list {
+      list-style: none;
+      margin-bottom: 30px;
+    }
+
+    .nav-list li {
+      margin-bottom: 6px;
+    }
+
+    .nav-list a {
+      color: #000000;
+      text-decoration: underline;
+    }
+
+    .author-key {
+      list-style: none;
+      font-size: 10px;
+      color: #555555;
+    }
+
+    .author-key li {
+      margin-bottom: 4px;
+    }
+
+    .author-key a {
+      color: #555555;
+      text-decoration: none;
+    }
+
     /* Single Post Display */
     .single-post {
       margin-bottom: 30px;
@@ -156,85 +219,98 @@
       cursor: pointer;
       text-transform: uppercase;
     }
+
+    @media (max-width: 768px) {
+      .logo {
+        position: static;
+        display: block;
+        margin-bottom: 25px;
+      }
+      .site-wrapper {
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+      }
+      aside {
+        position: static;
+        width: 100%;
+        margin-top: 30px;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Layout Container -->
-  <div id="layout-container"></div>
+  <!-- Fixed Top Left Logo -->
+  <a href="index.html" class="logo">faapd</a>
 
-  <script src="posts.js" onerror="console.warn('posts.js not found');"></script>
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const postFile = params.get('file');
-    const postId = params.get('id') || postFile;
-
-    // Load layout.html and populate post content
-    async function initPage() {
-      const layoutContainer = document.getElementById('layout-container');
-
-      try {
-        const layoutRes = await fetch('layout.html?v=' + Date.now());
-        if (layoutRes.ok) {
-          layoutContainer.innerHTML = await layoutRes.text();
-        } else {
-          throw new Error("Layout fetch failed");
-        }
-      } catch (err) {
-        // Fallback layout shell if layout.html fails
-        layoutContainer.innerHTML = '<div class="site-wrapper"><div class="content-left"><a href="index.html" class="logo" style="font-family: Arial; font-weight: bold; font-size: 26px; color: #000; text-decoration: none; display: block; margin-bottom: 25px;">faapd</a><main id="main-content"></main></div></div>';
-      }
-
-      let mainContent = document.getElementById('main-content');
-      if (!mainContent) {
-        mainContent = document.createElement('main');
-        mainContent.id = 'main-content';
-        layoutContainer.appendChild(mainContent);
-      }
-
-      // Inject Post Details & Comments Section HTML
-      mainContent.innerHTML = `
+  <div class="site-wrapper">
+    <div class="content-left">
+      <main id="main-content">
         <div id="post-content">Loading post...</div>
+
         <section class="comments-section">
           <h3>Comments</h3>
           <div id="comments-list"></div>
+
           <div class="add-comment-form">
             <input type="text" id="comment-author" placeholder="Your Name" required>
             <textarea id="comment-text" rows="3" placeholder="Leave a comment..." required></textarea>
             <button onclick="addComment()">Submit Comment</button>
           </div>
         </section>
-      `;
+      </main>
+    </div>
 
-      await loadPost();
-      loadComments();
-    }
+    <!-- Right Side Menu -->
+    <aside>
+      <ul class="nav-list">
+        <li><a href="about.html">ABOUT</a></li>
+        <li><a href="games.html">GAMES</a></li>
+      </ul>
+
+      <ul class="author-key">
+        <li><a href="franklinabboud.html">Franklin Abboud</a></li>
+        <li><a href="patrickdaughety.html">Patrick Daughety</a></li>
+      </ul>
+    </aside>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const postFile = params.get('file');
+    const postId = params.get('id') || postFile;
 
     async function loadPost() {
       const container = document.getElementById('post-content');
       if (!container) return;
 
-      // 1. Check local/static posts array first
-      const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
-      const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
-      let foundPost = [...localPosts, ...staticPosts].find(p => p.id == postId || p.filename === postFile || p.url === `posts/${postFile}`);
+      // 1. Check local storage first
+      let localPosts = [];
+      try {
+        localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+      } catch (e) {
+        localPosts = [];
+      }
+
+      let foundPost = localPosts.find(p => p.id == postId || p.filename === postFile);
 
       if (foundPost) {
         renderSinglePost({
-          author: foundPost.author,
-          title: foundPost.title,
-          dateStr: foundPost.dateStr || foundPost.date,
+          author: foundPost.author || 'FRANKLIN ABBOUD',
+          title: foundPost.title || 'UNTITLED POST',
+          dateStr: foundPost.dateStr || foundPost.date || '',
           images: Array.isArray(foundPost.images) ? foundPost.images : (foundPost.image ? [foundPost.image] : []),
-          text: foundPost.htmlText || foundPost.text
+          text: foundPost.htmlText || foundPost.text || ''
         });
         return;
       }
 
-      // 2. Fetch directly from posts folder or GitHub repository
+      // 2. Fetch directly from posts directory or raw GitHub link
       if (postFile) {
         try {
           let htmlText = '';
-          const localFetch = await fetch(`posts/${postFile}?v=` + Date.now());
+          const localFetch = await fetch(`posts/${postFile}`);
           
           if (localFetch.ok) {
             htmlText = await localFetch.text();
@@ -269,7 +345,7 @@
           container.innerHTML = `<p style="font-family: Arial, sans-serif; font-size: 11px; color: #888;">Post not found.</p>`;
         }
       } else {
-        container.innerHTML = `<p style="font-family: Arial, sans-serif; font-size: 11px; color: #888;">No post specified.</p>`;
+        container.innerHTML = `<p style="font-family: Arial, sans-serif; font-size: 11px; color: #888;">No post specified in URL parameters.</p>`;
       }
     }
 
@@ -337,4 +413,17 @@
       const savedComments = JSON.parse(localStorage.getItem(`comments_${postId}`)) || [];
       savedComments.push(newComment);
       
-      localStorage.setItem(
+      localStorage.setItem(`comments_${postId}`, JSON.stringify(savedComments));
+
+      document.getElementById('comment-author').value = '';
+      document.getElementById('comment-text').value = '';
+      loadComments();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadPost();
+      loadComments();
+    });
+  </script>
+</body>
+</html>
