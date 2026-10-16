@@ -49,23 +49,6 @@
       font-size: 11px;
     }
 
-    .delete-btn {
-      background: none;
-      border: none;
-      color: #000000;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 11px;
-      font-weight: normal;
-      cursor: pointer;
-      margin-left: 8px;
-      padding: 0;
-      text-decoration: none;
-    }
-
-    .delete-btn:hover {
-      text-decoration: underline;
-    }
-
     .post-images-container {
       width: 100%;
       display: flex;
@@ -192,28 +175,40 @@
     </section>
   </template>
 
-  <script src="posts.js"></script>
+  <script src="posts.js" onerror="console.warn('posts.js not found');"></script>
   <script>
-    const ADMIN_PIN = "1234";
-
     const params = new URLSearchParams(window.location.search);
     const postFile = params.get('file');
     const postId = params.get('id') || postFile;
 
     // Fetch layout.html and populate main-content area
     fetch('layout.html')
-      .then(response => response.text())
+      .then(response => {
+        if (!response.ok) throw new Error('Network error loading layout');
+        return response.text();
+      })
       .then(html => {
         document.getElementById('layout-container').innerHTML = html;
-
-        // Inject page template content into layout's main container
-        const content = document.getElementById('post-page-template').content.cloneNode(true);
-        document.getElementById('main-content').appendChild(content);
-
+        injectTemplate();
         loadPost();
         loadComments();
       })
-      .catch(err => console.error('Error loading layout:', err));
+      .catch(err => {
+        console.error('Error loading layout:', err);
+        // Fallback layout initialization
+        document.getElementById('layout-container').innerHTML = '<main id="main-content"></main>';
+        injectTemplate();
+        loadPost();
+        loadComments();
+      });
+
+    function injectTemplate() {
+      const main = document.getElementById('main-content');
+      if (main && !document.getElementById('post-content')) {
+        const content = document.getElementById('post-page-template').content.cloneNode(true);
+        main.appendChild(content);
+      }
+    }
 
     async function loadPost() {
       const container = document.getElementById('post-content');
@@ -222,20 +217,21 @@
       // 1. Check local/static storage first
       const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
       const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
-      let foundPost = [...localPosts, ...staticPosts].find(p => p.id == postId || p.url === `posts/${postFile}`);
+      let foundPost = [...localPosts, ...staticPosts].find(p => p.id == postId || p.filename === postFile || p.url === `posts/${postFile}`);
 
       if (foundPost) {
         renderSinglePost({
           author: foundPost.author,
           title: foundPost.title,
-          dateStr: foundPost.dateStr,
+          dateStr: foundPost.dateStr || foundPost.date,
           images: Array.isArray(foundPost.images) ? foundPost.images : (foundPost.image ? [foundPost.image] : []),
-          text: foundPost.text
+          text: foundPost.htmlText || foundPost.text
         });
         return;
       }
 
-      // 2. Fetch raw file from GitHub /posts/ directory
+      // 2. Fetch raw HTML file from GitHub posts directory or fallback API
       if (postFile) {
         try {
-          const res = await fetch(`posts/${postFile}`);
+          let htmlText = '';
+          const localFetch = await fetch(`posts/${postFile}`);
