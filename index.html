@@ -6,14 +6,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>faapd</title>
   <style>
-    /* Center the post container on screen */
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Georgia, serif;
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    /* Center post layout */
     #main-content {
       max-width: 580px !important;
       margin: 0 auto !important;
       width: 100%;
     }
 
-    /* Feed item styles */
     .feed-item {
       margin-bottom: 40px;
       padding-bottom: 25px;
@@ -70,7 +77,7 @@
       font-size: 11px;
     }
 
-    /* Instagram-Style Horizontal Scroll Carousel */
+    /* Carousel / Image Container */
     .carousel-container {
       position: relative;
       width: 100%;
@@ -86,11 +93,11 @@
       scroll-snap-type: x mandatory;
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
-      scrollbar-width: none; /* Hide scrollbar for Firefox */
+      scrollbar-width: none;
     }
 
     .carousel-track::-webkit-scrollbar {
-      display: none; /* Hide scrollbar for Chrome/Safari */
+      display: none;
     }
 
     .carousel-slide {
@@ -110,7 +117,6 @@
       display: block;
     }
 
-    /* Carousel Navigation Arrows */
     .carousel-btn {
       position: absolute;
       top: 50%;
@@ -133,7 +139,6 @@
     .carousel-btn.prev { left: 10px; }
     .carousel-btn.next { right: 10px; }
 
-    /* Carousel Pagination Dots */
     .carousel-dots {
       display: flex;
       justify-content: center;
@@ -223,8 +228,10 @@
 </head>
 <body>
 
-  <!-- Container for shared layout shell -->
-  <div id="layout-container"></div>
+  <!-- Shared Layout Shell Container -->
+  <div id="layout-container">
+    <main id="main-content"></main>
+  </div>
 
   <!-- Login Modal -->
   <div id="login-modal" class="modal-overlay">
@@ -238,17 +245,13 @@
     </div>
   </div>
 
-  <script src="posts.js"></script>
-
   <script>
-    // Global functions for carousel navigation
     window.scrollCarousel = function(postIdx, direction) {
       const container = document.getElementById(`carousel-${postIdx}`);
       if (!container) return;
       const track = container.querySelector('.carousel-track');
       if (!track) return;
-      const slideWidth = track.clientWidth;
-      track.scrollBy({ left: direction * slideWidth, behavior: 'smooth' });
+      track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
     };
 
     window.updateDots = function(postIdx) {
@@ -260,28 +263,28 @@
       const activeIndex = Math.round(track.scrollLeft / track.clientWidth);
 
       dots.forEach((dot, i) => {
-        if (i === activeIndex) {
-          dot.classList.add('active');
-        } else {
-          dot.classList.remove('active');
-        }
+        dot.classList.toggle('active', i === activeIndex);
       });
     };
 
-    // 1. Fetch and inject layout.html
-    fetch('layout.html')
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById('layout-container').innerHTML = html;
-        initModalEvents();
-        loadFeed();
-      })
-      .catch(err => {
-        console.error('Error loading layout:', err);
-        loadFeed();
-      });
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('layout.html')
+        .then(res => {
+          if (!res.ok) throw new Error('Layout fetch failed');
+          return res.text();
+        })
+        .then(html => {
+          document.getElementById('layout-container').innerHTML = html;
+          initModalEvents();
+          loadFeed();
+        })
+        .catch(err => {
+          console.warn('Loading fallback shell because layout.html could not be fetched:', err);
+          initModalEvents();
+          loadFeed();
+        });
+    });
 
-    // 2. Modal interactions
     function initModalEvents() {
       const accountIconBtn = document.getElementById('account-icon-btn');
       const loginModal = document.getElementById('login-modal');
@@ -321,20 +324,26 @@
       }
     }
 
-    // 3. Load dynamic posts
     async function loadFeed() {
       let container = document.getElementById('main-content');
       if (!container) {
-        container = document.getElementById('layout-container');
+        container = document.createElement('main');
+        container.id = 'main-content';
+        document.body.appendChild(container);
       }
-      if (!container) return;
-      
+
       container.innerHTML = '<p style="font-size:11px; color:#888;">Loading feed...</p>';
 
       const urlParams = new URLSearchParams(window.location.search);
       const selectedAuthor = urlParams.get('author');
 
-      const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+      let localPosts = [];
+      try {
+        localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
+      } catch (e) {
+        localPosts = [];
+      }
+
       const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
       let allPosts = [...localPosts, ...staticPosts];
 
@@ -343,7 +352,6 @@
         if (response.ok) {
           const files = await response.json();
           const htmlFiles = files.filter(f => f.name.endsWith('.html'));
-
           htmlFiles.sort((a, b) => b.name.localeCompare(a.name));
 
           const fetchedPosts = await Promise.all(htmlFiles.map(async (file) => {
@@ -355,4 +363,103 @@
 
             const textContainer = doc.querySelector('.post-text-content');
             let extractedText = textContainer ? textContainer.innerHTML.trim() : (doc.querySelector('p')?.innerHTML?.trim() || '');
-            extractedText = extractedText.replace(/^<p[^>]*>/i, '').replace(/
+            extractedText = extractedText.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '').trim();
+
+            const imgElements = doc.querySelectorAll('.full-post-image, .post-thumb, img');
+            const images = Array.from(imgElements).map(img => img.getAttribute('src')).filter(Boolean);
+
+            return {
+              filename: file.name,
+              author: doc.querySelector('.author-tag')?.textContent?.trim() || 'FRANKLIN ABBOUD',
+              title: doc.querySelector('.post-title')?.textContent?.trim() || file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase(),
+              dateStr: doc.querySelector('.post-date')?.textContent?.trim() || '',
+              images: images,
+              htmlText: extractedText
+            };
+          }));
+
+          allPosts = [...fetchedPosts, ...allPosts];
+        }
+      } catch (err) {
+        console.error("Could not fetch remote GitHub posts:", err);
+      }
+
+      if (selectedAuthor) {
+        allPosts = allPosts.filter(post => {
+          return post.author && post.author.toUpperCase() === selectedAuthor.toUpperCase();
+        });
+      }
+
+      renderFeed(allPosts);
+    }
+
+    function renderFeed(posts) {
+      let container = document.getElementById('main-content');
+      if (!container) return;
+
+      if (!posts || posts.length === 0) {
+        container.innerHTML = `<p style="font-size:11px; color:#888;">No posts found.</p>`;
+        return;
+      }
+
+      container.innerHTML = posts.map((post, idx) => {
+        const targetUrl = post.filename ? `post.html?file=${post.filename}` : `post.html?id=${post.id}`;
+        const bodyContent = post.htmlText || post.text || '';
+        
+        let imagesArray = [];
+        if (Array.isArray(post.images) && post.images.length > 0) {
+          imagesArray = post.images;
+        } else if (post.image) {
+          imagesArray = [post.image];
+        }
+
+        let mediaHTML = '';
+        if (imagesArray.length === 1) {
+          mediaHTML = `
+            <div class="carousel-container">
+              <div class="carousel-slide">
+                <img src="${imagesArray[0]}" alt="${post.title}">
+              </div>
+            </div>
+          `;
+        } else if (imagesArray.length > 1) {
+          const slidesHTML = imagesArray.map(src => `
+            <div class="carousel-slide">
+              <img src="${src}" alt="${post.title}">
+            </div>
+          `).join('');
+
+          const dotsHTML = imagesArray.map((_, i) => `
+            <span class="dot ${i === 0 ? 'active' : ''}"></span>
+          `).join('');
+
+          mediaHTML = `
+            <div class="carousel-container" id="carousel-${idx}">
+              <button class="carousel-btn prev" onclick="scrollCarousel(${idx}, -1)">&#10094;</button>
+              <div class="carousel-track" onscroll="updateDots(${idx})">
+                ${slidesHTML}
+              </div>
+              <button class="carousel-btn next" onclick="scrollCarousel(${idx}, 1)">&#10095;</button>
+              <div class="carousel-dots">
+                ${dotsHTML}
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <article class="feed-item">
+            <div class="post-header">
+              <a href="index.html?author=${encodeURIComponent(post.author)}" class="author-tag">${post.author}</a>
+              <span class="post-title"><a href="${targetUrl}">${post.title}</a></span>
+              <span class="post-date">${post.dateStr || post.date || ''}</span>
+            </div>
+            ${mediaHTML}
+            <div class="post-text-content">${bodyContent}</div>
+          </article>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
