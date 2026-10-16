@@ -17,7 +17,7 @@
 
   /* Top Right Human Silhouette Icon */
   .user-account-icon {
-    position: fixed;
+    position: absolute;
     top: 35px;
     right: 50px;
     cursor: pointer;
@@ -27,7 +27,6 @@
     width: 36px;
     height: 36px;
     transition: opacity 0.2s ease;
-    z-index: 100;
   }
 
   .user-account-icon:hover {
@@ -40,26 +39,13 @@
     fill: #000000;
   }
 
-  /* Top Left Logo (Fixed position so it stays pinned) */
-  .logo {
-    position: fixed;
-    top: 40px;
-    left: 40px;
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: bold;
-    font-size: 26px;
-    color: #000000;
-    text-decoration: none;
-    z-index: 100;
-  }
-
-  /* Centered Main Layout Shell */
   .site-wrapper {
-    width: 100%;
+    max-width: 100%;
     display: flex;
-    justify-content: center; /* Centers the post column in dead center */
+    justify-content: space-between;
     align-items: flex-start;
-    padding: 0 20px;
+    gap: 40px;
+    padding: 0 40px;
   }
 
   .content-left {
@@ -67,14 +53,24 @@
     width: 100%;
   }
 
-  /* Fixed Right Directory Menu */
+  .logo {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    font-size: 26px;
+    color: #000000;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 25px;
+  }
+
+  /* Right Section: Navigation Directory */
   aside {
-    position: fixed;
-    right: 60px;
-    top: 250px;
     width: 140px;
+    flex-shrink: 0;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 11px;
+    margin-top: 250px;
+    margin-right: 60px;
   }
 
   .nav-list {
@@ -123,22 +119,15 @@
       padding: 20px 15px;
     }
 
-    .logo {
-      position: static;
-      display: block;
-      margin-bottom: 25px;
-    }
-
     .user-account-icon {
-      position: absolute;
       top: 15px;
       right: 15px;
     }
 
     .site-wrapper {
       flex-direction: column;
-      align-items: center;
       padding: 0;
+      gap: 30px;
     }
 
     .content-left {
@@ -146,17 +135,14 @@
     }
 
     aside {
-      position: static;
       width: 100%;
-      margin-top: 30px;
+      margin-top: 20px;
+      margin-right: 0;
     }
   }
 </style>
 
-<!-- Top Left Logo -->
-<a href="index.html" class="logo">faapd</a>
-
-<!-- Top Right Silhouette Icon -->
+<!-- Top Right Human Silhouette Icon Link -->
 <a id="account-icon-btn" class="user-account-icon">
   <svg viewBox="0 0 24 24">
     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -165,11 +151,13 @@
 
 <div class="site-wrapper">
   <div class="content-left">
+    <!-- Top Left Site Branding -->
+    <a href="index.html" class="logo">faapd</a>
     <!-- Main page content gets inserted here dynamically -->
     <main id="main-content"></main>
   </div>
 
-  <!-- Right Side Directory -->
+  <!-- Right Side Menu -->
   <aside>
     <ul class="nav-list">
     </ul>
@@ -182,5 +170,6 @@
 </div>
 
 <script>
+  // Enforces tab title to 'faapd' on every page loading this layout shell
   document.title = 'faapd';
 </script>
