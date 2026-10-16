@@ -39,12 +39,12 @@
     fill: #000000;
   }
 
+  /* Centered Wrapper */
   .site-wrapper {
     max-width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: flex-start;
-    gap: 40px;
     padding: 0 40px;
   }
 
@@ -63,14 +63,15 @@
     margin-bottom: 25px;
   }
 
-  /* Right Section: Navigation Directory */
+  /* Fixed Navigation Sidebar */
   aside {
+    position: fixed;
+    right: 60px;
+    top: 250px;
     width: 140px;
     flex-shrink: 0;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 11px;
-    margin-top: 250px;
-    margin-right: 60px;
   }
 
   .nav-list {
@@ -126,8 +127,8 @@
 
     .site-wrapper {
       flex-direction: column;
+      align-items: center;
       padding: 0;
-      gap: 30px;
     }
 
     .content-left {
@@ -135,9 +136,9 @@
     }
 
     aside {
+      position: static;
       width: 100%;
-      margin-top: 20px;
-      margin-right: 0;
+      margin-top: 30px;
     }
   }
 </style>
