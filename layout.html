@@ -15,49 +15,43 @@
     position: relative;
   }
 
-  /* Fixed Top-Left Branding */
-  .logo {
-    position: fixed;
-    top: 40px;
-    left: 40px;
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: bold;
-    font-size: 26px;
-    color: #000000;
-    text-decoration: none;
-    z-index: 100;
-  }
-
-  /* Centered Feed Wrapper */
   .site-wrapper {
-    width: 100%;
+    max-width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: flex-start;
-    padding: 0 20px;
+    gap: 40px;
+    padding: 0 40px;
   }
 
   .content-left {
     max-width: 580px;
     width: 100%;
-    text-align: left;
   }
 
-  /* Fixed Right Directory Menu */
+  .logo {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    font-size: 26px;
+    color: #000000;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 25px;
+  }
+
+  /* Right Section: Navigation Directory */
   aside {
-    position: fixed;
-    right: 60px;
-    top: 250px;
     width: 140px;
+    flex-shrink: 0;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 11px;
-    text-align: left;
+    margin-top: 250px;
+    margin-right: 60px;
   }
 
   .nav-list {
     list-style: none;
     margin-bottom: 30px;
-    padding: 0;
   }
 
   .nav-list li {
@@ -95,22 +89,21 @@
     text-decoration: underline;
   }
 
-  /* Mobile Layout Rules */
+  /* Mobile Responsiveness */
   @media (max-width: 768px) {
     body {
       padding: 20px 15px;
     }
 
-    .logo {
-      position: static;
-      display: block;
-      margin-bottom: 25px;
+    .user-account-icon {
+      top: 15px;
+      right: 15px;
     }
 
     .site-wrapper {
       flex-direction: column;
-      align-items: center;
       padding: 0;
+      gap: 30px;
     }
 
     .content-left {
@@ -118,27 +111,24 @@
     }
 
     aside {
-      position: static;
       width: 100%;
-      margin-top: 30px;
+      margin-top: 20px;
+      margin-right: 0;
     }
   }
 </style>
 
-<!-- Top Left Logo -->
-<a href="index.html" class="logo">faapd</a>
-
 <div class="site-wrapper">
   <div class="content-left">
-    <!-- Main page content gets injected here -->
+    <!-- Top Left Site Branding -->
+    <a href="index.html" class="logo">faapd</a>
+    <!-- Main page content gets inserted here dynamically -->
     <main id="main-content"></main>
   </div>
 
-  <!-- Right Directory Menu -->
+  <!-- Right Side Menu -->
   <aside>
     <ul class="nav-list">
-      <li><a href="about.html">ABOUT</a></li>
-      <li><a href="games.html">GAMES</a></li>
     </ul>
 
     <ul class="author-key">
