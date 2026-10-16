@@ -7,6 +7,21 @@
   <title>faapd</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 40px 20px;
+    }
+
     /* Single Post Display */
     .single-post {
       margin-bottom: 30px;
@@ -16,7 +31,7 @@
       font-family: Arial, Helvetica, sans-serif;
       font-size: 11px;
       font-weight: bold;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: flex;
@@ -25,7 +40,7 @@
     }
 
     .author-tag {
-      display: inline;
+      display: inline-block;
       margin-right: 6px;
       background-color: #ffff00;
       color: #000000;
@@ -54,7 +69,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin: 8px 0 15px 0;
+      margin: 12px 0 15px 0;
     }
 
     .full-post-image {
@@ -70,12 +85,6 @@
       margin-top: 15px;
       margin-bottom: 30px;
       white-space: pre-wrap;
-    }
-
-    .post-text-content p {
-      margin: 0 !important;
-      padding: 0 !important;
-      line-height: 1.5 !important;
     }
 
     /* Comments Section */
@@ -137,11 +146,6 @@
       outline: none;
     }
 
-    .add-comment-form input[type="text"]::placeholder,
-    .add-comment-form textarea::placeholder {
-      color: #777777;
-    }
-
     .add-comment-form button {
       background: #000000;
       color: #ffffff;
@@ -159,62 +163,58 @@
   <!-- Layout Container -->
   <div id="layout-container"></div>
 
-  <!-- Hidden Content Template for Post Details & Comments -->
-  <template id="post-page-template">
-    <div id="post-content">Loading post...</div>
-
-    <section class="comments-section">
-      <h3>Comments</h3>
-      <div id="comments-list"></div>
-
-      <div class="add-comment-form">
-        <input type="text" id="comment-author" placeholder="Your Name" required>
-        <textarea id="comment-text" rows="3" placeholder="Leave a comment..." required></textarea>
-        <button onclick="addComment()">Submit Comment</button>
-      </div>
-    </section>
-  </template>
-
   <script src="posts.js" onerror="console.warn('posts.js not found');"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const postFile = params.get('file');
     const postId = params.get('id') || postFile;
 
-    // Fetch layout.html and populate main-content area
-    fetch('layout.html')
-      .then(response => {
-        if (!response.ok) throw new Error('Network error loading layout');
-        return response.text();
-      })
-      .then(html => {
-        document.getElementById('layout-container').innerHTML = html;
-        injectTemplate();
-        loadPost();
-        loadComments();
-      })
-      .catch(err => {
-        console.error('Error loading layout:', err);
-        // Fallback layout initialization
-        document.getElementById('layout-container').innerHTML = '<main id="main-content"></main>';
-        injectTemplate();
-        loadPost();
-        loadComments();
-      });
+    // Load layout.html and populate post content
+    async function initPage() {
+      const layoutContainer = document.getElementById('layout-container');
 
-    function injectTemplate() {
-      const main = document.getElementById('main-content');
-      if (main && !document.getElementById('post-content')) {
-        const content = document.getElementById('post-page-template').content.cloneNode(true);
-        main.appendChild(content);
+      try {
+        const layoutRes = await fetch('layout.html?v=' + Date.now());
+        if (layoutRes.ok) {
+          layoutContainer.innerHTML = await layoutRes.text();
+        } else {
+          throw new Error("Layout fetch failed");
+        }
+      } catch (err) {
+        // Fallback layout shell if layout.html fails
+        layoutContainer.innerHTML = '<div class="site-wrapper"><div class="content-left"><a href="index.html" class="logo" style="font-family: Arial; font-weight: bold; font-size: 26px; color: #000; text-decoration: none; display: block; margin-bottom: 25px;">faapd</a><main id="main-content"></main></div></div>';
       }
+
+      let mainContent = document.getElementById('main-content');
+      if (!mainContent) {
+        mainContent = document.createElement('main');
+        mainContent.id = 'main-content';
+        layoutContainer.appendChild(mainContent);
+      }
+
+      // Inject Post Details & Comments Section HTML
+      mainContent.innerHTML = `
+        <div id="post-content">Loading post...</div>
+        <section class="comments-section">
+          <h3>Comments</h3>
+          <div id="comments-list"></div>
+          <div class="add-comment-form">
+            <input type="text" id="comment-author" placeholder="Your Name" required>
+            <textarea id="comment-text" rows="3" placeholder="Leave a comment..." required></textarea>
+            <button onclick="addComment()">Submit Comment</button>
+          </div>
+        </section>
+      `;
+
+      await loadPost();
+      loadComments();
     }
 
     async function loadPost() {
       const container = document.getElementById('post-content');
       if (!container) return;
 
-      // 1. Check local/static storage first
+      // 1. Check local/static posts array first
       const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
       const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
       let foundPost = [...localPosts, ...staticPosts].find(p => p.id == postId || p.filename === postFile || p.url === `posts/${postFile}`);
@@ -230,8 +230,111 @@
         return;
       }
 
-      // 2. Fetch raw HTML file from GitHub posts directory or fallback API
+      // 2. Fetch directly from posts folder or GitHub repository
       if (postFile) {
         try {
           let htmlText = '';
-          const localFetch = await fetch(`posts/${postFile}`);
+          const localFetch = await fetch(`posts/${postFile}?v=` + Date.now());
+          
+          if (localFetch.ok) {
+            htmlText = await localFetch.text();
+          } else {
+            const githubRes = await fetch(`https://raw.githubusercontent.com/famouspunk4/faapd/main/posts/${postFile}`);
+            if (!githubRes.ok) throw new Error("File not found");
+            htmlText = await githubRes.text();
+          }
+
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(htmlText, 'text/html');
+
+          const author = doc.querySelector('.author-tag')?.textContent?.trim() || "FRANKLIN ABBOUD";
+          const title = doc.querySelector('.post-title')?.textContent?.trim() || postFile.replace('.html', '').replace(/-/g, ' ').toUpperCase();
+          const timestamp = doc.querySelector('.post-date')?.textContent?.trim() || '';
+          
+          const imgElements = doc.querySelectorAll('.post-images-column img, .full-post-image, .post-thumb, img');
+          const images = Array.from(imgElements).map(img => img.getAttribute('src')).filter(Boolean);
+
+          const textContainer = doc.querySelector('.post-text-content, .post-text');
+          let bodyText = textContainer ? textContainer.innerHTML.trim() : (doc.querySelector('p')?.innerHTML?.trim() || '');
+          bodyText = bodyText.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '').trim();
+
+          renderSinglePost({
+            author: author,
+            title: title,
+            dateStr: timestamp,
+            images: images,
+            text: bodyText
+          });
+        } catch (e) {
+          container.innerHTML = `<p style="font-family: Arial, sans-serif; font-size: 11px; color: #888;">Post not found.</p>`;
+        }
+      } else {
+        container.innerHTML = `<p style="font-family: Arial, sans-serif; font-size: 11px; color: #888;">No post specified.</p>`;
+      }
+    }
+
+    function renderSinglePost(p) {
+      const imagesList = p.images || [];
+      const imagesHtml = imagesList.map(src => `<img src="${src}" alt="${p.title}" class="full-post-image">`).join('');
+      const bodyContent = p.text || '';
+
+      const postContentElem = document.getElementById('post-content');
+      if (postContentElem) {
+        postContentElem.innerHTML = `
+          <article class="single-post">
+            <div class="post-header">
+              <a href="index.html?author=${encodeURIComponent(p.author)}" class="author-tag">${p.author}</a>
+              <span class="post-title">${p.title}</span>
+              <span class="post-date">${p.dateStr || ''}</span>
+            </div>
+            ${imagesList.length > 0 ? `<div class="post-images-container">${imagesHtml}</div>` : ''}
+            ${bodyContent ? `<div class="post-text-content">${bodyContent}</div>` : ''}
+          </article>
+        `;
+      }
+    }
+
+    function loadComments() {
+      const savedComments = JSON.parse(localStorage.getItem(`comments_${postId}`)) || [];
+      const commentsList = document.getElementById('comments-list');
+      if (!commentsList) return;
+      
+      if (savedComments.length === 0) {
+        commentsList.innerHTML = `<p style="font-size:11px; color:#888;"><em>No comments yet.</em></p>`;
+        return;
+      }
+
+      commentsList.innerHTML = savedComments.map(c => `
+        <div class="comment">
+          <div class="comment-header">
+            <strong>${c.author}</strong>
+            <span class="comment-timestamp">${c.timestamp || ''}</span>
+          </div>
+          <p class="comment-body">${c.text}</p>
+        </div>
+      `).join('');
+    }
+
+    function addComment() {
+      const author = document.getElementById('comment-author').value.trim();
+      const text = document.getElementById('comment-text').value.trim();
+
+      if (!author || !text) {
+        alert('Please fill out both fields.');
+        return;
+      }
+
+      const now = new Date();
+      const date = now.toLocaleDateString('en-US', { timeZone: 'UTC', month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
+      const time = now.toLocaleTimeString('en-GB', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      const newComment = {
+        author: author,
+        text: text,
+        timestamp: `${date} @ ${time} UTC`
+      };
+
+      const savedComments = JSON.parse(localStorage.getItem(`comments_${postId}`)) || [];
+      savedComments.push(newComment);
+      
+      localStorage.setItem(
