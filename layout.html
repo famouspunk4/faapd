@@ -15,9 +15,9 @@
     position: relative;
   }
 
-  /* Top Right Account Icon */
+  /* Top Right Human Silhouette Icon */
   .user-account-icon {
-    position: absolute;
+    position: fixed;
     top: 35px;
     right: 50px;
     cursor: pointer;
@@ -27,6 +27,7 @@
     width: 36px;
     height: 36px;
     transition: opacity 0.2s ease;
+    z-index: 100;
   }
 
   .user-account-icon:hover {
@@ -39,9 +40,9 @@
     fill: #000000;
   }
 
-  /* Top Left Logo (Fixed in original position) */
+  /* Top Left Logo (Fixed position so it stays pinned) */
   .logo {
-    position: absolute;
+    position: fixed;
     top: 40px;
     left: 40px;
     font-family: Arial, Helvetica, sans-serif;
@@ -49,17 +50,16 @@
     font-size: 26px;
     color: #000000;
     text-decoration: none;
-    z-index: 10;
+    z-index: 100;
   }
 
-  /* Main Wrapper */
+  /* Centered Main Layout Shell */
   .site-wrapper {
-    max-width: 100%;
+    width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Centers the post column in dead center */
     align-items: flex-start;
-    padding: 0 40px;
-    margin-top: 50px; /* Gives clearance below the absolute logo */
+    padding: 0 20px;
   }
 
   .content-left {
@@ -67,13 +67,12 @@
     width: 100%;
   }
 
-  /* Right Side Navigation Menu */
+  /* Fixed Right Directory Menu */
   aside {
     position: fixed;
     right: 60px;
     top: 250px;
     width: 140px;
-    flex-shrink: 0;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 11px;
   }
@@ -124,21 +123,22 @@
       padding: 20px 15px;
     }
 
-    .user-account-icon {
-      top: 15px;
-      right: 15px;
-    }
-
     .logo {
       position: static;
-      margin-bottom: 20px;
+      display: block;
+      margin-bottom: 25px;
+    }
+
+    .user-account-icon {
+      position: absolute;
+      top: 15px;
+      right: 15px;
     }
 
     .site-wrapper {
       flex-direction: column;
       align-items: center;
       padding: 0;
-      margin-top: 0;
     }
 
     .content-left {
@@ -156,7 +156,7 @@
 <!-- Top Left Logo -->
 <a href="index.html" class="logo">faapd</a>
 
-<!-- Top Right Account Icon -->
+<!-- Top Right Silhouette Icon -->
 <a id="account-icon-btn" class="user-account-icon">
   <svg viewBox="0 0 24 24">
     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -169,7 +169,7 @@
     <main id="main-content"></main>
   </div>
 
-  <!-- Right Side Menu -->
+  <!-- Right Side Directory -->
   <aside>
     <ul class="nav-list">
       <li><a href="about.html">ABOUT</a></li>
