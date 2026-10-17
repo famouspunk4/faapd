@@ -16,7 +16,7 @@
       font-family: Arial, Helvetica, sans-serif;
       font-size: 11px;
       font-weight: bold;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: flex;
@@ -49,6 +49,20 @@
       font-size: 11px;
     }
 
+    .post-text-content {
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      white-space: pre-wrap;
+    }
+
+    .post-text-content p {
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1.5 !important;
+    }
+
     .post-images-container {
       width: 100%;
       display: flex;
@@ -63,20 +77,6 @@
       max-width: 100%;
       display: block;
     }
-
-    .post-text-content {
-      font-size: 13px;
-      line-height: 1.5;
-      margin-top: 12px;
-      margin-bottom: 15px;
-      white-space: pre-wrap;
-    }
-
-    .post-text-content p {
-      margin: 0 !important;
-      padding: 0 !important;
-      line-height: 1.5 !important;
-    }
   </style>
 </head>
 <body>
@@ -89,7 +89,7 @@
     <div id="post-content">Loading post...</div>
   </template>
 
-  <script src="posts.js"></script>
+  <script src="posts.js" onerror="console.warn('posts.js not found');"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     let rawFile = params.get('file') || '';
@@ -157,19 +157,28 @@
           const parser = new DOMParser();
           const doc = parser.parseFromString(htmlText, 'text/html');
 
+          // Strip any embedded login forms or legacy account login markup
+          const loginElement = doc.querySelector('#login-modal, .modal-overlay, .account-login, form');
+          if (loginElement) loginElement.remove();
+
           const author = doc.querySelector('.author-tag')?.textContent?.trim() || "FRANKLIN ABBOUD";
           const title = doc.querySelector('.post-title')?.textContent?.trim() || postFile.replace('.html', '').replace(/-/g, ' ').toUpperCase();
           const timestamp = doc.querySelector('.post-date')?.textContent?.trim() || '';
           
-          // Extract ALL img elements from the post file
+          // Extract image URLs
           const imgElements = doc.querySelectorAll('.post-images-column img, .full-post-image, .post-thumb, img');
           const images = Array.from(imgElements).map(img => img.getAttribute('src')).filter(Boolean);
 
+          // Extract text description
           const textContainer = doc.querySelector('.post-text-content, .post-text');
           let bodyText = textContainer ? textContainer.innerHTML.trim() : (doc.querySelector('p')?.innerHTML?.trim() || '');
           
-          // Clean up leading/trailing paragraph tags from external HTML files
-          bodyText = bodyText.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '').trim();
+          // Clean up paragraph tags and unwanted login texts
+          bodyText = bodyText
+            .replace(/Account Login[\s\S]*/i, '')
+            .replace(/^<p[^>]*>/i, '')
+            .replace(/<\/p>$/i, '')
+            .trim();
 
           renderSinglePost({
             author: author,
@@ -179,10 +188,10 @@
             text: bodyText
           });
         } catch (e) {
-          container.innerHTML = `<p>Post not found.</p>`;
+          container.innerHTML = `<p style="font-family: Arial, sans-serif; font-size: 11px; color: #888;">Post not found.</p>`;
         }
       } else {
-        container.innerHTML = `<p>Post not found.</p>`;
+        container.innerHTML = `<p style="font-family: Arial, sans-serif; font-size: 11px; color: #888;">No post specified in URL parameters.</p>`;
       }
     }
 
