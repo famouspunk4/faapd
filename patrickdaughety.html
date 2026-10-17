@@ -27,71 +27,6 @@
       text-decoration: underline;
       margin-right: 12px;
     }
-
-    /* Feed Layout */
-    .post {
-      margin-bottom: 35px;
-    }
-
-    .post-header {
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 11px;
-      margin-bottom: 8px;
-    }
-
-    .author-tag {
-      background-color: #ffff00;
-      color: #000000;
-      padding: 1px 4px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-
-    .post-title a {
-      color: #000000;
-      font-weight: bold;
-      text-decoration: none;
-      margin-left: 6px;
-      text-transform: uppercase;
-    }
-
-    .post-title a:hover {
-      text-decoration: underline;
-    }
-
-    .post-date {
-      color: #666666;
-      margin-left: 6px;
-    }
-
-    .post-body {
-      display: flex;
-      gap: 15px;
-    }
-
-    .post-thumb {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-
-    .post-text {
-      flex: 1;
-    }
-
-    @media (max-width: 768px) {
-      .post-body {
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .post-thumb {
-        width: 100%;
-        height: auto;
-        max-height: 300px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -107,11 +42,8 @@
       <a href="https://soundcloud.com/19patrick?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing" target="_blank" rel="noopener noreferrer">SoundCloud</a>
       <a href="https://github.com/4runner4ever" target="_blank" rel="noopener noreferrer">GitHub</a>
     </div>
-
-    <div id="author-feed"></div>
   </template>
 
-  <script src="posts.js"></script>
   <script>
     // Fetch and inject layout.html
     fetch('layout.html')
@@ -122,51 +54,8 @@
         // Inject page content into main-content container
         const content = document.getElementById('author-content').content.cloneNode(true);
         document.getElementById('main-content').appendChild(content);
-
-        loadAuthorFeed();
       })
       .catch(err => console.error('Error loading layout:', err));
-
-    function loadAuthorFeed() {
-      const feedContainer = document.getElementById('author-feed');
-      if (!feedContainer) return;
-
-      const TARGET_AUTHOR = "Patrick Daughety";
-
-      const localPosts = JSON.parse(localStorage.getItem('custom_posts')) || [];
-      const staticPosts = (typeof postsData !== 'undefined') ? postsData : [];
-      const allPosts = [...localPosts.slice().reverse(), ...staticPosts];
-
-      const authorPosts = allPosts.filter(p => p.author && p.author.toLowerCase() === TARGET_AUTHOR.toLowerCase());
-
-      if (authorPosts.length === 0) {
-        feedContainer.innerHTML = "<p style='font-family: Arial; font-size: 11px;'>No posts found.</p>";
-      } else {
-        let authorFeedHtml = '';
-
-        authorPosts.forEach(post => {
-          const d = new Date(post.date);
-          const formattedDate = d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' }).replace(/\//g, '.');
-          const formattedTime = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-          authorFeedHtml += `
-            <article class="post">
-              <div class="post-header">
-                <span class="author-tag">${post.author}</span>
-                <span class="post-title"><a href="post.html?id=${post.id}">${post.title}</a></span>
-                <span class="post-date">${formattedDate} @ ${formattedTime}</span>
-              </div>
-              <div class="post-body">
-                ${post.image ? `<img src="${post.image}" alt="Thumbnail" class="post-thumb" />` : ''}
-                <div class="post-text"><p>${post.text || ''}</p></div>
-              </div>
-            </article>
-          `;
-        });
-
-        feedContainer.innerHTML = authorFeedHtml;
-      }
-    }
   </script>
 </body>
 </html>
