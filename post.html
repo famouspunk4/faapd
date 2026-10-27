@@ -25,7 +25,7 @@
     }
 
     .author-tag {
-      display: inline;
+      display: inline-block;
       margin-right: 6px;
       background-color: #ffff00;
       color: #000000;
@@ -34,6 +34,10 @@
       line-height: 1.1;
       font-weight: bold;
       text-transform: uppercase;
+    }
+
+    .author-tag:hover {
+      text-decoration: underline;
     }
 
     .post-title {
@@ -195,17 +199,26 @@
       }
     }
 
+    function getAuthorProfileUrl(authorName) {
+      if (!authorName) return 'index.html';
+      const cleanName = authorName.toLowerCase().trim();
+      if (cleanName.includes('franklin')) return 'franklinabboud.html';
+      if (cleanName.includes('patrick')) return 'patrickdaughety.html';
+      return 'index.html';
+    }
+
     function renderSinglePost(p) {
       const imagesList = p.images || [];
       const imagesHtml = imagesList.map(src => `<img src="${src}" alt="${p.title}" class="full-post-image">`).join('');
       const bodyContent = p.text || '';
+      const authorProfileUrl = getAuthorProfileUrl(p.author);
 
       const postContentElem = document.getElementById('post-content');
       if (postContentElem) {
         postContentElem.innerHTML = `
           <article class="single-post">
             <div class="post-header">
-              <a href="index.html?author=${encodeURIComponent(p.author)}" class="author-tag">${p.author}</a>
+              <a href="${authorProfileUrl}" class="author-tag">${p.author}</a>
               <span class="post-title">${p.title}</span>
               <span class="post-date">${p.dateStr || ''}</span>
             </div>
