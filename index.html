@@ -47,6 +47,10 @@
       text-transform: uppercase;
     }
 
+    .author-tag:hover {
+      text-decoration: underline;
+    }
+
     .post-title {
       display: inline;
       margin-right: 6px;
@@ -204,6 +208,14 @@
       renderFeed(allPosts);
     }
 
+    function getAuthorProfileUrl(authorName) {
+      if (!authorName) return 'index.html';
+      const cleanName = authorName.toLowerCase().trim();
+      if (cleanName.includes('franklin')) return 'franklinabboud.html';
+      if (cleanName.includes('patrick')) return 'patrickdaughety.html';
+      return 'index.html';
+    }
+
     function renderFeed(posts) {
       let container = document.getElementById('main-content');
       if (!container) {
@@ -217,13 +229,14 @@
 
       container.innerHTML = posts.map(post => {
         const targetUrl = post.filename ? `post.html?file=${post.filename}` : `post.html?id=${post.id}`;
+        const authorProfileUrl = getAuthorProfileUrl(post.author);
         const imageTag = post.image ? `<a href="${targetUrl}" class="post-thumb-link"><img src="${post.image}" alt="${post.title}" class="post-thumb"></a>` : '';
         const bodyContent = post.htmlText || post.text || '';
 
         return `
           <article class="feed-item">
             <div class="post-header">
-              <a href="index.html?author=${encodeURIComponent(post.author)}" class="author-tag">${post.author}</a>
+              <a href="${authorProfileUrl}" class="author-tag">${post.author}</a>
               <span class="post-title"><a href="${targetUrl}">${post.title}</a></span>
               <span class="post-date">${post.dateStr || post.date || ''}</span>
             </div>
