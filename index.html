@@ -86,6 +86,11 @@
       margin: 0 !important;
     }
 
+    .post-thumb-link {
+      display: block;
+      flex-shrink: 0 !important;
+    }
+
     .post-text-content {
       font-size: 13px !important;
       line-height: 1.3 !important;
@@ -212,7 +217,7 @@
 
       container.innerHTML = posts.map(post => {
         const targetUrl = post.filename ? `post.html?file=${post.filename}` : `post.html?id=${post.id}`;
-        const imageTag = post.image ? `<img src="${post.image}" alt="${post.title}" class="post-thumb">` : '';
+        const imageTag = post.image ? `<a href="${targetUrl}" class="post-thumb-link"><img src="${post.image}" alt="${post.title}" class="post-thumb"></a>` : '';
         const bodyContent = post.htmlText || post.text || '';
 
         return `
